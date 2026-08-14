@@ -1,0 +1,5 @@
+arranco entrono virtual:  .\.venv\Scripts\Activate.ps1
+
+arranco python : py manage.py runserver  
+
+

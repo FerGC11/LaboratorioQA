@@ -1,0 +1,20 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Laboratorio: un espacio para aprender, experimentar y construir.">
+    <title>{% block title %}Laboratorio{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="{% url 'inicio' %}"><span class="brand-mark">D</span><span>Diana</span></a>
+        <span class="status"><span class="status-dot"></span> BigBola</span>
+    </header>
+    <main>{% block content %}{% endblock %}</main>
+    <footer><p>Hecho para aprender, experimentar y crear.</p></footer>
+    <script src="{% static 'js/scripts.js' %}"></script>
+</body>
+</html>
