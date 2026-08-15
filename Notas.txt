@@ -3,3 +3,20 @@ arranco entrono virtual:  .\.venv\Scripts\Activate.ps1
 arranco python : py manage.py runserver  
 
 
+para clonar : git clone https://github.com/FerGC11/LaboratorioQA.git
+
+
+git checkout -b develop (crear una rama)
+
+ git push -u origin develop   (subo mi rama al repocitorio remoto)
+
+git checkout develop (cambiar a una rama)
+
+git branch (ver que ramas tengo)
+
+para subir un cambio
+
+git pull (descargo lo que tiene la rama remota)
+git add . (agrego mis cambios)
+git commit -m 'aqui pongo una descipcion de cambio'
+git push -u origin miRama (subo los cambios a mi rama)
