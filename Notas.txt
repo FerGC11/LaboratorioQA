@@ -2,6 +2,9 @@ arranco entrono virtual:  .\.venv\Scripts\Activate.ps1
 
 arranco python : py manage.py runserver  
 
+para ir al login ir a http://127.0.0.1:8000/
+para ir al inicio sin pasar por el login ir a http://127.0.0.1:8000/inicio/
+
 
 para clonar : git clone https://github.com/FerGC11/LaboratorioQA.git
 

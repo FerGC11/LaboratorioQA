@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Pruebas Aplicativos{% endblock %}
+{% block content %}
+<section class="tests-page">
+  <div class="tests-heading">
+    <div class="tests-title">
+      <a class="back-button" href="{% url 'inicio' %}" aria-label="Regresar a la página de inicio" title="Regresar al inicio">
+        <img src="{% static 'iconos/atras.png' %}" alt="">
+      </a>
+      <p class="tests-eyebrow">Control de calidad</p>
+      <h2>Pruebas Aplicativos</h2>
+    </div>
+    <div class="tests-actions">
+      <button class="tests-button tests-button-secondary" type="button" data-collapse-button="filters-panel" aria-controls="filters-panel" aria-expanded="false">Filtrar</button>
+      <button class="tests-button tests-button-primary" type="button" data-collapse-button="add-panel" aria-controls="add-panel" aria-expanded="false">Agregar tarea</button>
+    </div>
+  </div>
+
+  <div class="collapse-panel" id="filters-panel" hidden>
+    <div class="panel-heading"><p class="panel-kicker">Búsqueda</p><h3>Filtrar tareas</h3></div>
+    <form class="responsive-form filters-form" method="get">
+      <div class="form-field"><label for="fecha-desde">Fecha desde</label><input id="fecha-desde" name="fecha_desde" type="date"></div>
+      <div class="form-field"><label for="fecha-hasta">Fecha hasta</label><input id="fecha-hasta" name="fecha_hasta" type="date"></div>
+      <div class="form-field"><label for="filtro-asignado">Asignado a</label><input id="filtro-asignado" name="asignado" type="search" placeholder="Nombre"></div>
+      <div class="form-field"><label for="filtro-completado">Completado</label><select id="filtro-completado" name="completado"><option value="">Todos</option><option value="si">Sí</option><option value="no">No</option></select></div>
+      <div class="form-field"><label for="filtro-estado">Estado</label><select id="filtro-estado" name="estado"><option value="">Todos</option><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></div>
+      <div class="form-actions"><button class="form-button form-button-ghost" type="reset">Limpiar</button><button class="form-button" type="submit">Aplicar filtros</button></div>
+    </form>
+  </div>
+
+  <div class="collapse-panel" id="add-panel" hidden>
+    <div class="panel-heading"><p class="panel-kicker">Nueva entrada</p><h3>Agregar tarea</h3></div>
+    <form class="responsive-form" method="post">{% csrf_token %}
+      <div class="form-field form-field-wide"><label for="nombre-tarea">Nombre de la tarea</label><input id="nombre-tarea" name="nombre_tarea" required></div>
+      <div class="form-field"><label for="deposito">Depósito</label><input id="deposito" name="deposito"></div>
+      <div class="form-field"><label for="estado">Estado</label><select id="estado" name="estado" required><option value="">Seleccionar</option><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></div>
+      <div class="form-field"><label for="asignado-a">Asignado a</label><input id="asignado-a" name="asignado_a"></div>
+      <div class="form-field"><label for="fecha-creacion">Fecha de creación</label><input id="fecha-creacion" name="fecha_creacion" type="date"></div>
+      <div class="form-field"><label for="fecha-vencimiento">Fecha de vencimiento</label><input id="fecha-vencimiento" name="fecha_vencimiento" type="date"></div>
+      <div class="form-field"><label for="fecha-inicio">Fecha de inicio</label><input id="fecha-inicio" name="fecha_inicio" type="date"></div>
+      <div class="form-field"><label for="fecha-finalizacion">Fecha de finalización</label><input id="fecha-finalizacion" name="fecha_finalizacion" type="date"></div>
+      <div class="form-field"><label for="completado-por">Completado por</label><input id="completado-por" name="completado_por"></div>
+      <div class="form-field"><label for="elementos-completos">Elementos completos</label><input id="elementos-completos" name="elementos_completos" placeholder="Ej. 3/3"></div>
+      <div class="form-field"><label for="etiqueta">Etiqueta</label><input id="etiqueta" name="etiqueta"></div>
+      <div class="form-field form-check"><input id="periodico" name="es_periodico" type="checkbox"><label for="periodico">Es periódico</label></div>
+      <div class="form-field form-check"><input id="retraso" name="con_retraso" type="checkbox"><label for="retraso">Con retraso</label></div>
+      <div class="form-field form-field-wide"><label for="lista">Elementos de la lista de comprobación</label><textarea id="lista" name="lista_comprobacion" rows="3"></textarea></div>
+      <div class="form-field form-field-wide"><label for="notas">Notas</label><textarea id="notas" name="notas" rows="3"></textarea></div>
+      <div class="form-actions form-field-wide"><button class="form-button form-button-ghost" type="reset">Limpiar</button><button class="form-button" type="submit">Guardar tarea</button></div>
+    </form>
+  </div>
+  <div class="table-scroll" role="region" aria-label="Listado de pruebas de máquinas" tabindex="0">
+    <table class="tests-table">
+            <thead>
+                <tr>
+                    <th>Nombre de la tarea</th>
+                    <th>Depósito</th>
+                    <th>Estado</th>
+                    <th>Asignado a</th>
+                    <th>Fecha de creación</th>
+                    <th>Fecha de vencimiento</th>
+                    <th>Fecha de inicio</th>
+                    <th>Es periódico</th>
+                    <th>Con retraso</th>
+                    <th>Fecha de finalización</th>
+                    <th>Completado por</th>
+                    <th>Elementos completos</th>
+                    <th>Elementos de la lista de comprobación</th>
+                    <th>Etiqueta</th>
+                    <th>Notas</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>AyB1.4.3.8</td>
+                    <td>Finalizado</td>
+                    <td>Completado</td>
+                    <td>Diana Cervantes</td>
+                    <td>2025-07-10</td>
+                    <td>2025-07-22</td>
+                    <td>2025-07-11</td>
+                    <td>false</td>
+                    <td>false</td>
+                    <td>2025-07-16</td>
+                    <td>Diana Cervantes</td>
+                    <td>3/3</td>
+                    <td>Iniciar con las pruebas; Finalizar pruebas; Aplicativos</td>
+                    <td></td>
+                    <td>
+                        El 11 de julio se valida el ingreso al sistema.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+  </div>
+</section>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{const buttons=document.querySelectorAll("[data-collapse-button]");buttons.forEach(button=>button.addEventListener("click",()=>{const target=document.getElementById(button.dataset.collapseButton),open=target.hidden;buttons.forEach(other=>{document.getElementById(other.dataset.collapseButton).hidden=true;other.setAttribute("aria-expanded","false");other.classList.remove("is-active")});if(open){target.hidden=false;button.setAttribute("aria-expanded","true");button.classList.add("is-active")}}))});
+</script>
+{% endblock %}

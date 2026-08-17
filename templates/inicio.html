@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Bienvenido | Laboratorio{% endblock %}
 {% block content %}
 <section class="hero">
     <div class="hero-copy">
-        <p class="eyebrow">Tu espacio de creación</p>
+        <p class="eyebrow">Concentrado de pruebas</p>
         <h1>Laboratorio<br><span>QA</span></h1>
         <p class="intro">Una base sencilla para transformar ideas en proyectos reales. Explora, aprende y construye a tu ritmo.</p>
         <a class="button" href="#conoce-mas">Conoce más <span>→</span></a>
@@ -11,24 +12,83 @@
     <div class="visual" aria-hidden="true">
         <div class="orb orb-one"></div><div class="orb orb-two"></div>
         <div class="glass-card"><div class="flask">⚗</div><p>Ideas en movimiento</p><strong>Experimenta sin límites</strong></div>
+        <!--div class="glass-card photo-card"><img class="hero-photo" src="{% static 'imagenes/foto.jpeg' %}" alt=""></div-->
     </div>
 </section>
 <section class="features" id="conoce-mas">
-    <article class="flip-card" tabindex="0"><div class="flip-card-inner">
-        <div class="flip-card-front"><span>01</span><div class="card-icon">✦</div><h2>Imagina</h2><small>Pasa el cursor para descubrir</small></div>
-        <div class="flip-card-back"><h2>Imagina</h2><p>Todo gran proyecto comienza con una idea y un lugar donde desarrollarla.</p></div>
-    </div></article>
-    <article class="flip-card" tabindex="0"><div class="flip-card-inner">
-        <div class="flip-card-front"><span>02</span><div class="card-icon">⚗</div><h2>Experimenta</h2><small>Pasa el cursor para descubrir</small></div>
-        <div class="flip-card-back"><h2>Experimenta</h2><p>Prueba nuevos caminos, aprende del proceso y mejora cada resultado.</p></div>
-    </div></article>
-    <article class="flip-card" tabindex="0"><div class="flip-card-inner">
-        <div class="flip-card-front"><span>03</span><div class="card-icon">◇</div><h2>Aprende</h2><small>Pasa el cursor para descubrir</small></div>
-        <div class="flip-card-back"><h2>Aprende</h2><p>Convierte cada prueba y cada error en conocimiento para tu siguiente paso.</p></div>
-    </div></article>
-    <article class="flip-card" tabindex="0"><div class="flip-card-inner">
-        <div class="flip-card-front"><span>04</span><div class="card-icon">↗</div><h2>Construye</h2><small>Pasa el cursor para descubrir</small></div>
-        <div class="flip-card-back"><h2>Construye</h2><p>Transforma tus aprendizajes en soluciones útiles, claras y duraderas.</p></div>
-    </div></article>
+    <article class="flip-card" tabindex="0">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <div class="card-icon">
+                    <img src="{% static 'iconos/maquina.png' %}" alt="Icono de máquina">
+                </div>
+                <h2>Maquinas</h2>
+                <small>Pasa el cursor para descubrir</small>
+            </div>
+            <div class="flip-card-back">
+                <h2>Maquinas</h2>
+                <p>Todo gran proyecto comienza con una idea y un lugar donde desarrollarla.</p>
+                <a 
+                    href="{% url 'pruebas:PruebasMaquinas' %}" 
+                    class="card-button">
+                    Ver detalles <span aria-hidden="true">→</span>
+                </a>
+            </div>
+        </div>
+    </article>
+
+    <article class="flip-card" tabindex="0">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <div class="card-icon">
+                    <img src="{% static 'iconos/aplicacion.png' %}" alt="Icono de aplicativos">
+                </div>
+                <h2>Aplicativos</h2><small>Pasa el cursor para descubrir</small>
+            </div>
+            <div class="flip-card-back">
+                <h2>Aplicativos</h2>
+                <p>Prueba nuevos caminos, aprende del proceso y mejora cada resultado.</p>
+                <a 
+                    href="{% url 'pruebas:PruebasAplicativos' %}" 
+                    class="card-button">
+                    Ver detalles <span aria-hidden="true">→</span>
+                </a>
+            </div>
+        </div>
+    </article>
+
+    <article class="flip-card" tabindex="0">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <span>03</span>
+                <div class="card-icon">
+                    <img src="{% static 'iconos/estadisticas.png' %}" alt="Icono de aplicativos">
+                </div>
+                <h2>Estadisticas</h2><small>Pasa el cursor para descubrir</small>
+            </div>
+            <div class="flip-card-back">
+                <h2>Estadisticas</h2>
+                <p>Convierte cada prueba y cada error en conocimiento para tu siguiente paso.</p>
+                <button class="card-button" type="button">Ver detalles <span aria-hidden="true">→</span></button>
+            </div>
+        </div>
+    </article>
+
+    <article class="flip-card" tabindex="0">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <span>04</span>
+                <div class="card-icon">
+                    <img src="{% static 'iconos/laboratorio.png' %}" alt="Icono de aplicativos">
+                </div>
+                <h2>Layout</h2><small>Pasa el cursor para descubrir</small>
+            </div>
+            <div class="flip-card-back">
+                <h2>Layout</h2>
+                <p>Transforma tus aprendizajes en soluciones útiles, claras y duraderas.</p>
+                <button class="card-button" type="button">Ver detalles <span aria-hidden="true">→</span></button>
+            </div>
+        </div>
+    </article>
 </section>
 {% endblock %}
