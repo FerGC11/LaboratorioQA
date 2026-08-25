@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Layout del laboratorio{% endblock %}
+{% block content %}
+<section class="lab-layout-page">
+  <div class="lab-layout-heading">
+    <div>
+      <a class="back-button" href="{% url 'inicio' %}" aria-label="Regresar al inicio" title="Regresar al inicio"><img src="{% static 'iconos/atras.png' %}" alt=""></a>
+      <p class="tests-eyebrow">Distribución de equipos</p>
+      <h1>Layout del laboratorio</h1>
+    </div>
+    <div class="layout-legend" aria-label="Leyenda"><span><i class="legend-dot occupied"></i>Ocupada</span><span><i class="legend-dot available"></i>Disponible</span></div>
+  </div>
+  {% if posiciones %}
+  <div class="lab-layout-grid" style="--layout-columns: {{ total_columnas|default:1 }};">
+    <div class="lab-area-label">Laboratorio QA</div>
+    {% for posicion in posiciones %}
+    <article class="position-card {% if posicion.maquinas_asignadas %}is-occupied{% else %}is-available{% endif %}" style="--layout-row: {{ posicion.fila }}; --layout-column: {{ posicion.columna }};">
+      <div class="position-card-top"><span class="position-number">{{ posicion.idPosicion }}</span><span class="position-coordinates">F{{ posicion.fila }} · C{{ posicion.columna }}</span></div>
+      <h2>{{ posicion.nombrePosicion }}</h2>
+      {% if posicion.maquinas_asignadas %}
+      <div class="position-machines">
+        {% for maquina in posicion.maquinas_asignadas %}
+        <div class="position-machine"><img src="{% static 'iconos/maquina.png' %}" alt=""><div><strong>{{ maquina.nombreMaquina }}</strong><span>{{ maquina.juego }}</span></div></div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="position-empty"><span aria-hidden="true">+</span><p>Posición disponible</p></div>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="layout-empty-state"><img src="{% static 'iconos/maquina.png' %}" alt=""><h2>Aún no hay posiciones</h2><p>Agrega posiciones desde el administrador para construir el layout del laboratorio.</p></div>
+  {% endif %}
+</section>
+{% endblock %}

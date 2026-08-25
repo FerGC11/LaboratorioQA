@@ -14,3 +14,6 @@ def inicioPruebasAplicativos(request):
         return redirect("pruebas:inicioPruebasAplicativos")
 
     return render(request, 'aplicativos/PruebasAplicativos.html')
+
+def inicioEstadisticasPruebas(request):
+    return render (request, 'estadisticas/estadisticas.html')

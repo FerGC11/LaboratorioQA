@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Estadísticas | Laboratorio{% endblock %}
+{% block content %}
+<section class="tests-page statistics-page">
+  <div class="tests-heading">
+    <div class="tests-title">
+      <a class="back-button" href="{% url 'inicio' %}" aria-label="Regresar al inicio" title="Regresar al inicio"><img src="{% static 'iconos/atras.png' %}" alt=""></a>
+      <p class="tests-eyebrow">Panel de resultados</p><h2>Estadísticas de pruebas</h2>
+    </div>
+    <div class="tests-actions"><button class="tests-button tests-button-secondary" type="button" data-stats-filter-button aria-controls="statistics-filters" aria-expanded="false">Filtrar</button></div>
+  </div>
+  <div class="collapse-panel" id="statistics-filters" hidden>
+    <div class="panel-heading"><p class="panel-kicker">Búsqueda</p><h3>Filtrar estadísticas</h3></div>
+    <form class="responsive-form statistics-filter-form" method="get">
+      <div class="form-field"><label for="stats-from">Fecha desde</label><input id="stats-from" name="fecha_desde" type="date"></div>
+      <div class="form-field"><label for="stats-to">Fecha hasta</label><input id="stats-to" name="fecha_hasta" type="date"></div>
+      <div class="form-field"><label for="stats-assignee">Asignado a</label><input id="stats-assignee" name="asignado" type="search" placeholder="Nombre"></div>
+      <div class="form-field"><label for="stats-type">Tipo de prueba</label><select id="stats-type" name="tipo"><option value="">Todos</option><option>Máquinas</option><option>Aplicativos</option></select></div>
+      <div class="form-field"><label for="stats-status">Estado</label><select id="stats-status" name="estado"><option value="">Todos</option><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></div>
+      <div class="form-actions"><button class="form-button form-button-ghost" type="reset">Limpiar</button><button class="form-button" type="submit">Aplicar filtros</button></div>
+    </form>
+  </div>
+  <div class="statistics-summary">
+    <article><span>Pruebas totales</span><strong>148</strong><small>+12 este mes</small></article><article><span>Completadas</span><strong>112</strong><small>76% del total</small></article><article><span>En proceso</span><strong>24</strong><small>16% del total</small></article><article><span>Pendientes</span><strong>12</strong><small>8% del total</small></article>
+  </div>
+  <div class="charts-grid">
+    <article class="chart-card">
+      <div class="chart-heading"><div><p>Productividad</p><h3>Pruebas por mes</h3></div><span>Últimos 6 meses</span></div>
+      <div class="vertical-chart" aria-label="Barras: enero 14, febrero 20, marzo 18, abril 27, mayo 24 y junio 32">
+        <div class="chart-y-axis"><span>40</span><span>30</span><span>20</span><span>10</span><span>0</span></div>
+        <div class="vertical-bars"><div class="bar-column"><div class="bar-value" style="--value:35%"><b>14</b></div><span>Ene</span></div><div class="bar-column"><div class="bar-value" style="--value:50%"><b>20</b></div><span>Feb</span></div><div class="bar-column"><div class="bar-value" style="--value:45%"><b>18</b></div><span>Mar</span></div><div class="bar-column"><div class="bar-value" style="--value:68%"><b>27</b></div><span>Abr</span></div><div class="bar-column"><div class="bar-value" style="--value:60%"><b>24</b></div><span>May</span></div><div class="bar-column"><div class="bar-value is-highlighted" style="--value:80%"><b>32</b></div><span>Jun</span></div></div>
+      </div>
+    </article>
+    <article class="chart-card">
+      <div class="chart-heading"><div><p>Distribución</p><h3>Pruebas por estado</h3></div><span>148 pruebas</span></div>
+      <div class="donut-layout"><div class="donut-chart" role="img" aria-label="Completadas 76%, en proceso 16%, pendientes 8%"><div><strong>76%</strong><span>completadas</span></div></div><ul class="chart-legend"><li><i class="legend-completed"></i><span>Completadas</span><strong>112</strong></li><li><i class="legend-progress"></i><span>En proceso</span><strong>24</strong></li><li><i class="legend-pending"></i><span>Pendientes</span><strong>12</strong></li></ul></div>
+    </article>
+    <article class="chart-card">
+      <div class="chart-heading"><div><p>Tendencia</p><h3>Porcentaje de éxito</h3></div><span>Promedio 86%</span></div>
+      <div class="line-chart" role="img" aria-label="Tendencia de éxito ascendente de 72 a 94 por ciento"><div class="line-labels"><span>100%</span><span>75%</span><span>50%</span><span>25%</span></div><svg viewBox="0 0 600 230" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="lineArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#59e0ba" stop-opacity=".35"/><stop offset="1" stop-color="#59e0ba" stop-opacity="0"/></linearGradient></defs><path class="line-area" d="M15 120 L125 105 L235 130 L345 82 L455 68 L585 38 L585 220 L15 220 Z"/><polyline points="15,120 125,105 235,130 345,82 455,68 585,38"/><g><circle cx="15" cy="120" r="6"/><circle cx="125" cy="105" r="6"/><circle cx="235" cy="130" r="6"/><circle cx="345" cy="82" r="6"/><circle cx="455" cy="68" r="6"/><circle cx="585" cy="38" r="6"/></g></svg><div class="line-months"><span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span></div></div>
+    </article>
+    <article class="chart-card">
+      <div class="chart-heading"><div><p>Equipo</p><h3>Pruebas por responsable</h3></div><span>Total asignado</span></div>
+      <div class="horizontal-chart"><div class="horizontal-row"><div><span>Diana Cervantes</span><strong>46</strong></div><div class="horizontal-track"><i style="--value:92%"></i></div></div><div class="horizontal-row"><div><span>Lizpeth González</span><strong>38</strong></div><div class="horizontal-track"><i style="--value:76%"></i></div></div><div class="horizontal-row"><div><span>Marco Fernández</span><strong>34</strong></div><div class="horizontal-track"><i style="--value:68%"></i></div></div><div class="horizontal-row"><div><span>Sin asignar</span><strong>18</strong></div><div class="horizontal-track"><i style="--value:36%"></i></div></div></div>
+    </article>
+  </div>
+</section>
+<script>document.addEventListener("DOMContentLoaded",function(){const b=document.querySelector("[data-stats-filter-button]"),p=document.getElementById("statistics-filters");b.addEventListener("click",function(){const o=p.hidden;p.hidden=!o;b.setAttribute("aria-expanded",String(o));b.classList.toggle("is-active",o)})});</script>
+{% endblock %}

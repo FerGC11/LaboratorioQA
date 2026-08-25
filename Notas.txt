@@ -8,6 +8,7 @@ para ir al inicio sin pasar por el login ir a http://127.0.0.1:8000/inicio/
 
 para clonar : git clone https://github.com/FerGC11/LaboratorioQA.git
 
+----crear rama
 
 git checkout -b develop (crear una rama)
 
@@ -17,9 +18,16 @@ git checkout develop (cambiar a una rama)
 
 git branch (ver que ramas tengo)
 
+------git
 para subir un cambio
 
 git pull (descargo lo que tiene la rama remota)
 git add . (agrego mis cambios)
 git commit -m 'aqui pongo una descipcion de cambio'
 git push -u origin miRama (subo los cambios a mi rama)
+
+
+----ejecutar migraciones
+
+python manage.py makemigrations (crea las migraciones)
+python manage.py migrate (ejecuta las migraciones en base de datos)
