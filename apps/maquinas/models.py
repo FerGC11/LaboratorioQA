@@ -16,6 +16,7 @@ class PosicionesLaboratorio(models.Model):
 class Maquinas(models.Model):
     idMaquina = models.IntegerField(primary_key=True)
     nombreMaquina = models.CharField(max_length=25)
+    numeroSerie = models.CharField(max_length=100, blank=True)
     juego = models.CharField(max_length=30)
     activa = models.BooleanField(default=True)
     idPosicion = models.ForeignKey('PosicionesLaboratorio', on_delete=models.CASCADE)

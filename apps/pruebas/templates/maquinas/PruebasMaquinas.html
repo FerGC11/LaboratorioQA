@@ -1,208 +1,84 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Pruebas Maquinas{% endblock %}
+{% block title %}Pruebas Máquinas{% endblock %}
 {% block content %}
 <section class="tests-page">
   <div class="tests-heading">
     <div class="tests-title">
-      <a class="back-button" href="{% url 'inicio' %}" aria-label="Regresar a la página de inicio" title="Regresar al inicio">
-        <img src="{% static 'iconos/atras.png' %}" alt="">
-      </a>
+      <a class="back-button" href="{% url 'inicio' %}" aria-label="Regresar a la página de inicio" title="Regresar al inicio"><img src="{% static 'iconos/atras.png' %}" alt=""></a>
       <p class="tests-eyebrow">Control de calidad</p>
       <h2>Pruebas Máquinas</h2>
     </div>
     <div class="tests-actions">
-      <button class="tests-button tests-button-secondary" type="button" data-collapse-button="filters-panel" aria-controls="filters-panel" aria-expanded="false">Filtrar</button>
-      <button class="tests-button tests-button-primary" type="button" data-collapse-button="add-panel" aria-controls="add-panel" aria-expanded="false">Agregar tarea</button>
+      <button class="tests-button tests-button-secondary {% if mostrar_filtros %}is-active{% endif %}" type="button" data-collapse-button="filters-panel" aria-controls="filters-panel" aria-expanded="{% if mostrar_filtros %}true{% else %}false{% endif %}">Filtrar</button>
+      <button class="tests-button tests-button-primary {% if mostrar_registro %}is-active{% endif %}" type="button" data-collapse-button="add-panel" aria-controls="add-panel" aria-expanded="{% if mostrar_registro %}true{% else %}false{% endif %}">Agregar prueba</button>
     </div>
   </div>
 
-  <div class="collapse-panel" id="filters-panel" hidden>
-    <div class="panel-heading"><p class="panel-kicker">Búsqueda</p><h3>Filtrar tareas</h3></div>
-    <form class="responsive-form filters-form" method="get">
-      <div class="form-field"><label for="fecha-desde">Fecha desde</label><input id="fecha-desde" name="fecha_desde" type="date"></div>
-      <div class="form-field"><label for="fecha-hasta">Fecha hasta</label><input id="fecha-hasta" name="fecha_hasta" type="date"></div>
-      <div class="form-field"><label for="filtro-asignado">Asignado a</label><input id="filtro-asignado" name="asignado" type="search" placeholder="Nombre"></div>
-      <div class="form-field"><label for="filtro-completado">Completado</label><select id="filtro-completado" name="completado"><option value="">Todos</option><option value="si">Sí</option><option value="no">No</option></select></div>
-      <div class="form-field"><label for="filtro-estado">Estado</label><select id="filtro-estado" name="estado"><option value="">Todos</option><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></div>
-      <div class="form-actions"><button class="form-button form-button-ghost" type="reset">Limpiar</button><button class="form-button" type="submit">Aplicar filtros</button></div>
+  <div class="collapse-panel" id="filters-panel" {% if not mostrar_filtros %}hidden{% endif %}>
+    <div class="panel-heading"><p class="panel-kicker">Búsqueda</p><h3>Filtrar pruebas</h3></div>
+    <form class="responsive-form database-filter-form" method="get">
+      {% for field in formulario_filtro %}
+      <div class="form-field">
+        {{ field.label_tag }}{{ field }}
+        {% for error in field.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
+      </div>
+      {% endfor %}
+      {% for error in formulario_filtro.non_field_errors %}<p class="form-error form-field-wide">{{ error }}</p>{% endfor %}
+      <div class="form-actions form-field-wide">
+        <a class="form-button form-button-ghost form-link" href="{% url 'pruebas:PruebasMaquinas' %}">Limpiar</a>
+        <button class="form-button" type="submit">Aplicar filtros</button>
+      </div>
     </form>
   </div>
 
-  <div class="collapse-panel" id="add-panel" hidden>
-    <div class="panel-heading"><p class="panel-kicker">Nueva entrada</p><h3>Agregar tarea</h3></div>
-    <form class="responsive-form" method="post">{% csrf_token %}
-      <div class="form-field form-field-wide"><label for="nombre-tarea">Nombre de la tarea</label><input id="nombre-tarea" name="nombre_tarea" required></div>
-      <div class="form-field"><label for="deposito">Depósito</label><input id="deposito" name="deposito"></div>
-      <div class="form-field"><label for="estado">Estado</label><select id="estado" name="estado" required><option value="">Seleccionar</option><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></div>
-      <div class="form-field"><label for="asignado-a">Asignado a</label><input id="asignado-a" name="asignado_a"></div>
-      <div class="form-field"><label for="fecha-creacion">Fecha de creación</label><input id="fecha-creacion" name="fecha_creacion" type="date"></div>
-      <div class="form-field"><label for="fecha-vencimiento">Fecha de vencimiento</label><input id="fecha-vencimiento" name="fecha_vencimiento" type="date"></div>
-      <div class="form-field"><label for="fecha-inicio">Fecha de inicio</label><input id="fecha-inicio" name="fecha_inicio" type="date"></div>
-      <div class="form-field"><label for="fecha-finalizacion">Fecha de finalización</label><input id="fecha-finalizacion" name="fecha_finalizacion" type="date"></div>
-      <div class="form-field"><label for="completado-por">Completado por</label><input id="completado-por" name="completado_por"></div>
-      <div class="form-field"><label for="elementos-completos">Elementos completos</label><input id="elementos-completos" name="elementos_completos" placeholder="Ej. 3/3"></div>
-      <div class="form-field"><label for="etiqueta">Etiqueta</label><input id="etiqueta" name="etiqueta"></div>
-      <div class="form-field form-check"><input id="periodico" name="es_periodico" type="checkbox"><label for="periodico">Es periódico</label></div>
-      <div class="form-field form-check"><input id="retraso" name="con_retraso" type="checkbox"><label for="retraso">Con retraso</label></div>
-      <div class="form-field form-field-wide"><label for="lista">Elementos de la lista de comprobación</label><textarea id="lista" name="lista_comprobacion" rows="3"></textarea></div>
-      <div class="form-field form-field-wide"><label for="notas">Notas</label><textarea id="notas" name="notas" rows="3"></textarea></div>
-      <div class="form-actions form-field-wide"><button class="form-button form-button-ghost" type="reset">Limpiar</button><button class="form-button" type="submit">Guardar tarea</button></div>
+  <div class="collapse-panel" id="add-panel" {% if not mostrar_registro %}hidden{% endif %}>
+    <div class="panel-heading"><p class="panel-kicker">Nueva entrada</p><h3>Registrar prueba de máquina</h3></div>
+    <form class="responsive-form database-entry-form" method="post" novalidate>
+      {% csrf_token %}
+      {% for field in formulario_registro %}
+      <div class="form-field {% if field.name == 'observaciones' %}form-field-wide{% endif %}">
+        {{ field.label_tag }}{{ field }}
+        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+        {% for error in field.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
+      </div>
+      {% endfor %}
+      {% for error in formulario_registro.non_field_errors %}<p class="form-error form-field-wide">{{ error }}</p>{% endfor %}
+      <div class="form-actions form-field-wide"><button class="form-button form-button-ghost" type="reset">Limpiar</button><button class="form-button" type="submit">Guardar prueba</button></div>
     </form>
+  </div>
+
+  <div class="database-results-header">
+    <p><strong>{{ pruebas_maquinas|length }}</strong> prueba{{ pruebas_maquinas|length|pluralize:"s" }} encontrada{{ pruebas_maquinas|length|pluralize:"s" }}</p>
   </div>
   <div class="table-scroll" role="region" aria-label="Listado de pruebas de máquinas" tabindex="0">
-    <table class="tests-table">
-            <thead>
-                <tr>
-                    <th>Nombre de la tarea</th>
-                    <th>Depósito</th>
-                    <th>Estado</th>
-                    <th>Asignado a</th>
-                    <th>Fecha de creación</th>
-                    <th>Fecha de vencimiento</th>
-                    <th>Fecha de inicio</th>
-                    <th>Es periódico</th>
-                    <th>Con retraso</th>
-                    <th>Fecha de finalización</th>
-                    <th>Completado por</th>
-                    <th>Elementos completos</th>
-                    <th>Elementos de la lista de comprobación</th>
-                    <th>Etiqueta</th>
-                    <th>Notas</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <tr>
-                    <td>Pruebas Feria SLP</td>
-                    <td>Finalizado</td>
-                    <td>Completado</td>
-                    <td>Lizpeth González; Diana Cervantes</td>
-                    <td>2025-07-10</td>
-                    <td>2025-07-31</td>
-                    <td>2025-06-19</td>
-                    <td>false</td>
-                    <td>false</td>
-                    <td>2025-07-23</td>
-                    <td>Marco Fernández</td>
-                    <td>8/8</td>
-                    <td>Pruebas de promociones; Instalación; Entorno</td>
-                    <td></td>
-                    <td>
-                        Revisión de equipos<br>
-                        Instalación de terminales<br>
-                        Se reciben las tarjetas para pruebas
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>MERKUR - Link Overdrive</td>
-                    <td>Finalizado</td>
-                    <td>Completado</td>
-                    <td>Lizpeth González; Diana Cervantes</td>
-                    <td>2025-07-10</td>
-                    <td>2025-07-30</td>
-                    <td>2025-07-29</td>
-                    <td>false</td>
-                    <td>false</td>
-                    <td>2025-08-01</td>
-                    <td>Diana Cervantes</td>
-                    <td>3/3</td>
-                    <td>Pruebas; Notificar; Liberación</td>
-                    <td>Maquinas</td>
-                    <td>
-                        Inicio de pruebas 29-07-25<br>
-                        Finaliza pruebas 30-07-2025
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>AINSWORTH - Coin Kingdom Egyptian</td>
-                    <td>Finalizado</td>
-                    <td>Completado</td>
-                    <td>Lizpeth González</td>
-                    <td>2025-07-10</td>
-                    <td>2025-07-29</td>
-                    <td>2025-07-24</td>
-                    <td>false</td>
-                    <td>false</td>
-                    <td>2025-08-05</td>
-                    <td>Diana Cervantes</td>
-                    <td>3/3</td>
-                    <td>Notificar; Pruebas; Liberación</td>
-                    <td>Maquinas</td>
-                    <td>
-                        PPT 02-07-2025<br>
-                        Pruebas 24-07-25<br>
-                        Finaliza 29-07-2025
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>DREIDEL - Golden Eggs</td>
-                    <td>Finalizado</td>
-                    <td>Completado</td>
-                    <td>Lizpeth González</td>
-                    <td>2025-07-10</td>
-                    <td>2025-07-23</td>
-                    <td>2025-07-17</td>
-                    <td>false</td>
-                    <td>false</td>
-                    <td>2025-07-24</td>
-                    <td>Marco Fernández</td>
-                    <td>4/4</td>
-                    <td>Pruebas; Liberación; Notificación</td>
-                    <td>Maquinas</td>
-                    <td>
-                        PPT 19-06-25<br>
-                        Inicio de pruebas 17 julio 2025
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>MERKUR - CLASH LINK - Egypt Clash</td>
-                    <td>Finalizado</td>
-                    <td>Completado</td>
-                    <td>Diana Cervantes</td>
-                    <td>2025-07-10</td>
-                    <td>2025-07-18</td>
-                    <td>2025-07-16</td>
-                    <td>false</td>
-                    <td>false</td>
-                    <td>2025-07-18</td>
-                    <td>Marco Fernández</td>
-                    <td>3/3</td>
-                    <td>Pruebas; Notificar; PPT</td>
-                    <td>Maquinas</td>
-                    <td>
-                        PPT 30-06-25<br>
-                        Pruebas 17-07-25 y 18-07-25
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>ARISTOCRAT - Bao Zhu Zhao Fu</td>
-                    <td>Finalizado</td>
-                    <td>Completado</td>
-                    <td>Lizpeth González; Diana Cervantes</td>
-                    <td>2025-07-10</td>
-                    <td>2025-07-23</td>
-                    <td>2025-07-16</td>
-                    <td>false</td>
-                    <td>false</td>
-                    <td>2025-07-24</td>
-                    <td>Marco Fernández</td>
-                    <td>4/4</td>
-                    <td>Pruebas; Liberación; Notificar; PPT</td>
-                    <td>Maquinas</td>
-                    <td>
-                        PPT 04-06-25<br>
-                        Inicia pruebas 16-07-25<br>
-                        Fin prueba 23-07-25
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <table class="tests-table database-table">
+      <thead><tr>
+        <th>ID prueba</th><th>Código</th><th>Máquina</th><th>Número de serie</th><th>Proveedor</th><th>Juego</th><th>Encargado</th><th>Tipo</th><th>Estado</th><th>Resultado</th><th>Puesta a punto</th><th>Inicio</th><th>Fin</th><th>Observaciones</th>
+      </tr></thead>
+      <tbody>
+        {% for registro in pruebas_maquinas %}
+        <tr>
+          <td>{{ registro.idPrueba_id }}</td>
+          <td><strong>{{ registro.codigoPrueba }}</strong></td>
+          <td>{{ registro.idMaquina.nombreMaquina }}</td>
+          <td>{{ registro.idMaquina.numeroSerie|default:"—" }}</td>
+          <td>{{ registro.idProveedor.nombreProveedor }}</td>
+          <td>{{ registro.idJuego.nombreJuego }}</td>
+          <td>{{ registro.idPrueba.idEncargado.get_full_name|default:registro.idPrueba.idEncargado.username }}</td>
+          <td>{{ registro.idPrueba.idTipoPrueba.nombreTipoPrueba }}</td>
+          <td><span class="status-badge">{{ registro.idPrueba.idEstado.nombreEstado }}</span></td>
+          <td>{{ registro.idPrueba.idResultado.nombreResultado }}</td>
+          <td>{{ registro.idPrueba.fechaPuestaPunto|date:"Y-m-d"|default:"—" }}</td>
+          <td>{{ registro.idPrueba.fechaInicio|date:"Y-m-d"|default:"—" }}</td>
+          <td>{{ registro.idPrueba.fechaFin|date:"Y-m-d"|default:"—" }}</td>
+          <td>{{ registro.idPrueba.observaciones|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td class="empty-table-message" colspan="14">No hay pruebas que coincidan con los filtros. Agrega una prueba o cambia los criterios de búsqueda.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </section>
 <script>
