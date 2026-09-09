@@ -31,3 +31,9 @@ git push -u origin miRama (subo los cambios a mi rama)
 
 python manage.py makemigrations (crea las migraciones)
 python manage.py migrate (ejecuta las migraciones en base de datos)
+
+
+---para arrancar el proyecto y usar mi lap como server
+
+sacar la IP y ponerla en mi archivo .env
+python manage.py runserver 0.0.0.0:8000
