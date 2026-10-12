@@ -3,7 +3,7 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY")
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = config("DEBUG", default="False").strip().lower() in {"1", "true", "yes", "on", "debug"}
 ALLOWED_HOSTS = [h.strip() for h in config("ALLOWED_HOSTS", default="localhost").split(",") if h.strip()]
 
 INSTALLED_APPS = [

@@ -25,7 +25,7 @@
 
   <div class="collapse-panel" id="add-panel" {% if not mostrar_registro %}hidden{% endif %}>
     <div class="panel-heading"><p class="panel-kicker">Nueva entrada</p><h3>Registrar prueba de aplicativo</h3></div>
-    <form class="responsive-form database-entry-form" method="post" novalidate>{% csrf_token %}
+    <form class="responsive-form database-entry-form application-entry-form" method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
       {% for field in formulario_registro %}<div class="form-field {% if field.name == 'observaciones' %}form-field-wide{% endif %}">{{ field.label_tag }}{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</div>{% endfor %}
       {% for error in formulario_registro.non_field_errors %}<p class="form-error form-field-wide">{{ error }}</p>{% endfor %}
       <div class="form-actions form-field-wide"><button class="form-button form-button-ghost" type="reset">Limpiar</button><button class="form-button" type="submit">Guardar prueba</button></div>
@@ -35,19 +35,44 @@
   <div class="database-results-header"><p><strong>{{ pruebas_aplicativos|length }}</strong> prueba{{ pruebas_aplicativos|length|pluralize:"s" }} encontrada{{ pruebas_aplicativos|length|pluralize:"s" }}</p></div>
   <div class="table-scroll" role="region" aria-label="Listado de pruebas de aplicativos" tabindex="0">
     <table class="tests-table database-table">
-      <thead><tr><th>ID prueba</th><th>Código</th><th>Tipo de aplicativo</th><th>Desarrollador</th><th>Encargado</th><th>Tipo de prueba</th><th>Estado</th><th>Resultado</th><th>Puesta a punto</th><th>Inicio</th><th>Fin</th><th>Observaciones</th></tr></thead>
+      <thead><tr><th>Código</th><th>Nombre de prueba</th><th>Versión aplicación</th><th>Tipo de aplicativo</th><th>Proyecto</th><th>Encargado</th><th>Tipo de prueba</th><th>Estado</th><th>Resultado</th><th>Aprobados</th><th>No aprobados</th><th>Aprobados menos</th><th>Puesta a punto</th><th>Inicio</th><th>Fin</th><th>Documento</th><th>Observaciones</th><th>Acciones</th></tr></thead>
       <tbody>
         {% for registro in pruebas_aplicativos %}
         <tr>
-          <td>{{ registro.idPrueba_id }}</td><td><strong>{{ registro.codigoPrueba }}</strong></td><td>{{ registro.idTipoAplicativo.nombreTipoAplicativo }}</td>
-          <td>{{ registro.idDesarrollador.get_full_name|default:registro.idDesarrollador.username }}</td><td>{{ registro.idPrueba.idEncargado.get_full_name|default:registro.idPrueba.idEncargado.username }}</td>
-          <td>{{ registro.idPrueba.idTipoPrueba.nombreTipoPrueba }}</td><td><span class="status-badge">{{ registro.idPrueba.idEstado.nombreEstado }}</span></td><td>{{ registro.idPrueba.idResultado.nombreResultado }}</td>
-          <td>{{ registro.idPrueba.fechaPuestaPunto|date:"Y-m-d"|default:"—" }}</td><td>{{ registro.idPrueba.fechaInicio|date:"Y-m-d"|default:"—" }}</td><td>{{ registro.idPrueba.fechaFin|date:"Y-m-d"|default:"—" }}</td><td>{{ registro.idPrueba.observaciones|default:"—" }}</td>
+          <td><strong>{{ registro.codigoPrueba }}</strong></td><td>{{ registro.nombrePrueba|default:"—" }}</td><td>{{ registro.versionAplicacion|default:"—" }}</td><td>{{ registro.idTipoAplicativo.nombreTipoAplicativo }}</td>
+          <td>{{ registro.idProyecto.nombreProyecto }}</td><td>{{ registro.idPrueba.idEncargado.get_full_name|default:registro.idPrueba.idEncargado.username }}</td>
+          <td>{{ registro.idPrueba.idTipoPrueba.nombreTipoPrueba }}</td><td><span class="status-badge">{{ registro.idPrueba.idEstado.nombreEstado }}</span></td><td>{{ registro.idPrueba.idResultado.nombreResultado|default:"—" }}</td><td>{{ registro.numAprobado }}</td><td>{{ registro.numNoAprobado }}</td><td>{{ registro.numAprobadoMenos }}</td>
+          <td>{{ registro.idPrueba.fechaPuestaPunto|date:"Y-m-d"|default:"—" }}</td><td>{{ registro.idPrueba.fechaInicio|date:"Y-m-d"|default:"—" }}</td><td>{{ registro.idPrueba.fechaFin|date:"Y-m-d"|default:"—" }}</td><td>{% if registro.idPrueba.documentoPruebas %}<a href="{{ registro.idPrueba.documentoPruebas }}" target="_blank" rel="noopener">Ver</a>{% else %}—{% endif %}</td><td>{{ registro.idPrueba.observaciones|default:"—" }}</td><td><a class="form-button form-link" href="{% url 'pruebas:PruebasAplicativos' %}?editar={{ registro.idPruebaAplicativo }}">Editar</a></td>
         </tr>
-        {% empty %}<tr><td class="empty-table-message" colspan="12">No hay pruebas que coincidan con los filtros. Agrega una prueba o cambia los criterios de búsqueda.</td></tr>{% endfor %}
+        {% empty %}<tr><td class="empty-table-message" colspan="18">No hay pruebas que coincidan con los filtros. Agrega una prueba o cambia los criterios de búsqueda.</td></tr>{% endfor %}
       </tbody>
     </table>
   </div>
 </section>
+{% if registro_edicion %}
+<div class="edit-modal-backdrop" role="presentation">
+  <section class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+    <div class="edit-modal-heading">
+      <div><p class="panel-kicker">Seguimiento</p><h3 id="edit-modal-title">Editar {{ registro_edicion.codigoPrueba }}</h3></div>
+      <a class="edit-modal-close" href="{% url 'pruebas:PruebasAplicativos' %}" aria-label="Cerrar">×</a>
+    </div>
+    <form class="responsive-form database-entry-form edit-modal-form" method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="editar">
+      <input type="hidden" name="idPruebaAplicativo" value="{{ registro_edicion.idPruebaAplicativo }}">
+      {% for field in formulario_edicion %}
+      <div class="form-field {% if field.name == 'observaciones' %}form-field-wide{% endif %}">
+        {{ field.label_tag }}{{ field }}
+        {% for error in field.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
+      </div>
+      {% endfor %}
+      <div class="form-actions form-field-wide">
+        <a class="form-button form-button-ghost form-link" href="{% url 'pruebas:PruebasAplicativos' %}">Cancelar</a>
+        <button class="form-button" type="submit">Guardar cambios</button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endif %}
 <script>document.addEventListener("DOMContentLoaded",()=>{const buttons=document.querySelectorAll("[data-collapse-button]");buttons.forEach(button=>button.addEventListener("click",()=>{const target=document.getElementById(button.dataset.collapseButton),open=target.hidden;buttons.forEach(other=>{document.getElementById(other.dataset.collapseButton).hidden=true;other.setAttribute("aria-expanded","false");other.classList.remove("is-active")});if(open){target.hidden=false;button.setAttribute("aria-expanded","true");button.classList.add("is-active")}}))});</script>
 {% endblock %}

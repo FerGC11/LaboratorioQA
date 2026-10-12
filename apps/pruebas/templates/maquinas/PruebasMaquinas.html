@@ -34,7 +34,7 @@
 
   <div class="collapse-panel" id="add-panel" {% if not mostrar_registro %}hidden{% endif %}>
     <div class="panel-heading"><p class="panel-kicker">Nueva entrada</p><h3>Registrar prueba de máquina</h3></div>
-    <form class="responsive-form database-entry-form" method="post" novalidate>
+    <form class="responsive-form database-entry-form" method="post" enctype="multipart/form-data" novalidate>
       {% csrf_token %}
       {% for field in formulario_registro %}
       <div class="form-field {% if field.name == 'observaciones' %}form-field-wide{% endif %}">
@@ -54,17 +54,19 @@
   <div class="table-scroll" role="region" aria-label="Listado de pruebas de máquinas" tabindex="0">
     <table class="tests-table database-table">
       <thead><tr>
-        <th>ID prueba</th><th>Código</th><th>Máquina</th><th>Número de serie</th><th>Proveedor</th><th>Juego</th><th>Encargado</th><th>Tipo</th><th>Estado</th><th>Resultado</th><th>Puesta a punto</th><th>Inicio</th><th>Fin</th><th>Observaciones</th>
+        <th>ID prueba</th><th>Código</th><th>Máquina</th><th>Número de serie</th><th>Familia</th><th>Tipo de juego</th><th>Versión caja</th><th>Versión Nexus</th><th>Encargado</th><th>Tipo</th><th>Estado</th><th>Resultado</th><th>Puesta a punto</th><th>Inicio</th><th>Fin</th><th>Documento</th><th>Observaciones</th>
       </tr></thead>
       <tbody>
         {% for registro in pruebas_maquinas %}
         <tr>
           <td>{{ registro.idPrueba_id }}</td>
           <td><strong>{{ registro.codigoPrueba }}</strong></td>
-          <td>{{ registro.idMaquina.nombreMaquina }}</td>
+          <td>{{ registro.idMaquina.nombreGabinete }}</td>
           <td>{{ registro.idMaquina.numeroSerie|default:"—" }}</td>
-          <td>{{ registro.idProveedor.nombreProveedor }}</td>
-          <td>{{ registro.idJuego.nombreJuego }}</td>
+          <td>{{ registro.idFamilia.nombreFamilia }}</td>
+          <td>{{ registro.idTipoJuego.nombre }}</td>
+          <td>{{ registro.versionSistemaCaja }}</td>
+          <td>{{ registro.versionNexus }}</td>
           <td>{{ registro.idPrueba.idEncargado.get_full_name|default:registro.idPrueba.idEncargado.username }}</td>
           <td>{{ registro.idPrueba.idTipoPrueba.nombreTipoPrueba }}</td>
           <td><span class="status-badge">{{ registro.idPrueba.idEstado.nombreEstado }}</span></td>
@@ -72,10 +74,11 @@
           <td>{{ registro.idPrueba.fechaPuestaPunto|date:"Y-m-d"|default:"—" }}</td>
           <td>{{ registro.idPrueba.fechaInicio|date:"Y-m-d"|default:"—" }}</td>
           <td>{{ registro.idPrueba.fechaFin|date:"Y-m-d"|default:"—" }}</td>
+          <td>{% if registro.idPrueba.documentoPruebas %}<a href="{{ registro.idPrueba.documentoPruebas }}" target="_blank" rel="noopener">Ver</a>{% else %}—{% endif %}</td>
           <td>{{ registro.idPrueba.observaciones|default:"—" }}</td>
         </tr>
         {% empty %}
-        <tr><td class="empty-table-message" colspan="14">No hay pruebas que coincidan con los filtros. Agrega una prueba o cambia los criterios de búsqueda.</td></tr>
+        <tr><td class="empty-table-message" colspan="17">No hay pruebas que coincidan con los filtros. Agrega una prueba o cambia los criterios de búsqueda.</td></tr>
         {% endfor %}
       </tbody>
     </table>

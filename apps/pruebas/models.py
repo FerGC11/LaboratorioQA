@@ -17,12 +17,35 @@ class Proveedores(ModeloCatalogo):
         return self.nombreProveedor
 
 
-class Juegos(ModeloCatalogo):
-    idJuego = models.BigAutoField(primary_key=True)
-    nombreJuego = models.CharField(max_length=120, unique=True)
+class TipoJuego(ModeloCatalogo):
+    idTipoJuego = models.BigAutoField(primary_key=True)
+    nombre = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
-        return self.nombreJuego
+        return self.nombre
+
+
+class FamiliasJuegos(ModeloCatalogo):
+    idFamilia = models.BigAutoField(primary_key=True)
+    nombreFamilia = models.CharField(max_length=120, unique=True)
+
+    def __str__(self):
+        return self.nombreFamilia
+
+
+class Juegos(ModeloCatalogo):
+    idJuego = models.BigAutoField(primary_key=True)
+    idFamilia = models.ForeignKey(FamiliasJuegos, on_delete=models.PROTECT, related_name="juegos")
+    nombreJuego = models.CharField(max_length=120)
+    version = models.CharField(max_length=80)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("idFamilia", "nombreJuego", "version"), name="juego_unico_por_familia_version")
+        ]
+
+    def __str__(self):
+        return f"{self.nombreJuego} {self.version}"
 
 
 class TiposPruebas(ModeloCatalogo):
@@ -57,32 +80,25 @@ class TiposAplicativos(ModeloCatalogo):
         return self.nombreTipoAplicativo
 
 
+class Proyectos(ModeloCatalogo):
+    idProyecto = models.BigAutoField(primary_key=True)
+    nombreProyecto = models.CharField(max_length=120, unique=True)
+
+    def __str__(self):
+        return self.nombreProyecto
+
+
 class Pruebas(models.Model):
     idPrueba = models.BigAutoField(primary_key=True)
-    idEncargado = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name="pruebas_encargadas",
-    )
-    idTipoPrueba = models.ForeignKey(
-        TiposPruebas,
-        on_delete=models.PROTECT,
-        related_name="pruebas",
-    )
-    idResultado = models.ForeignKey(
-        Resultados,
-        on_delete=models.PROTECT,
-        related_name="pruebas",
-    )
-    idEstado = models.ForeignKey(
-        Estados,
-        on_delete=models.PROTECT,
-        related_name="pruebas",
-    )
-    observaciones = models.TextField(blank=True)
+    idEncargado = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="pruebas_encargadas")
+    idTipoPrueba = models.ForeignKey(TiposPruebas, on_delete=models.PROTECT, related_name="pruebas")
+    idResultado = models.ForeignKey(Resultados, on_delete=models.PROTECT, related_name="pruebas", null=True)
+    idEstado = models.ForeignKey(Estados, on_delete=models.PROTECT, related_name="pruebas")
+    observaciones = models.TextField(blank=True, null=True)
     fechaPuestaPunto = models.DateField(null=True, blank=True)
     fechaInicio = models.DateField(null=True, blank=True)
     fechaFin = models.DateField(null=True, blank=True)
+    documentoPruebas = models.URLField(max_length=500, null=True, blank=True)
 
     def __str__(self):
         return f"Prueba {self.idPrueba}"
@@ -90,27 +106,13 @@ class Pruebas(models.Model):
 
 class PruebasMaquinas(models.Model):
     idPruebaMaquina = models.BigAutoField(primary_key=True)
-    idPrueba = models.ForeignKey(
-        Pruebas,
-        on_delete=models.CASCADE,
-        related_name="pruebas_maquinas",
-    )
-    idProveedor = models.ForeignKey(
-        Proveedores,
-        on_delete=models.PROTECT,
-        related_name="pruebas_maquinas",
-    )
-    idJuego = models.ForeignKey(
-        Juegos,
-        on_delete=models.PROTECT,
-        related_name="pruebas_maquinas",
-    )
-    idMaquina = models.ForeignKey(
-        "maquinas.Maquinas",
-        on_delete=models.PROTECT,
-        related_name="pruebas_maquinas",
-    )
+    idPrueba = models.ForeignKey(Pruebas, on_delete=models.CASCADE, related_name="pruebas_maquinas")
+    idFamilia = models.ForeignKey(FamiliasJuegos, on_delete=models.PROTECT, related_name="pruebas_maquinas")
+    idMaquina = models.ForeignKey("maquinas.Maquinas", on_delete=models.PROTECT, related_name="pruebas_maquinas")
     codigoPrueba = models.CharField(max_length=100, unique=True)
+    idTipoJuego = models.ForeignKey(TipoJuego, on_delete=models.PROTECT, related_name="pruebas_maquinas")
+    versionSistemaCaja = models.CharField(max_length=100)
+    versionNexus = models.CharField(max_length=100)
 
     def __str__(self):
         return self.codigoPrueba
@@ -118,22 +120,15 @@ class PruebasMaquinas(models.Model):
 
 class PruebasAplicativos(models.Model):
     idPruebaAplicativo = models.BigAutoField(primary_key=True)
-    idPrueba = models.ForeignKey(
-        Pruebas,
-        on_delete=models.CASCADE,
-        related_name="pruebas_aplicativos",
-    )
-    idTipoAplicativo = models.ForeignKey(
-        TiposAplicativos,
-        on_delete=models.PROTECT,
-        related_name="pruebas_aplicativos",
-    )
-    idDesarrollador = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name="pruebas_desarrolladas",
-    )
+    idPrueba = models.ForeignKey(Pruebas, on_delete=models.CASCADE, related_name="pruebas_aplicativos")
+    idTipoAplicativo = models.ForeignKey(TiposAplicativos, on_delete=models.PROTECT, related_name="pruebas_aplicativos")
+    idProyecto = models.ForeignKey(Proyectos, on_delete=models.PROTECT, related_name="pruebas_aplicativos")
     codigoPrueba = models.CharField(max_length=100, unique=True)
+    nombrePrueba = models.CharField(max_length=150, null=True, blank=True)
+    versionAplicacion = models.CharField(max_length=100, null=True, blank=True)
+    numAprobado = models.PositiveIntegerField(default=0)
+    numNoAprobado = models.PositiveIntegerField(default=0)
+    numAprobadoMenos = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.codigoPrueba
