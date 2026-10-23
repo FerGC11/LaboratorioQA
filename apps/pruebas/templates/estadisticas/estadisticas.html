@@ -8,43 +8,131 @@
       <a class="back-button" href="{% url 'inicio' %}" aria-label="Regresar al inicio" title="Regresar al inicio"><img src="{% static 'iconos/atras.png' %}" alt=""></a>
       <p class="tests-eyebrow">Panel de resultados</p><h2>Estadísticas de pruebas</h2>
     </div>
-    <div class="tests-actions"><button class="tests-button tests-button-secondary" type="button" data-stats-filter-button aria-controls="statistics-filters" aria-expanded="false">Filtrar</button></div>
   </div>
-  <div class="collapse-panel" id="statistics-filters" hidden>
+  <div class="statistics-dashboard">
+    <div class="statistics-dashboard-heading">
+      <nav class="statistics-tabs" aria-label="Tipo de estadisticas">
+        {% for opcion in opciones_estadisticas %}<a class="statistics-tab {% if categoria == opcion.clave %}is-active{% endif %}" href="{{ opcion.url }}" {% if categoria == opcion.clave %}aria-current="page"{% endif %}>{{ opcion.nombre }}</a>{% endfor %}
+      </nav>
+    <div class="tests-actions"><button class="tests-button tests-button-secondary {% if mostrar_filtros %}is-active{% endif %}" type="button" data-stats-filter-button aria-controls="statistics-filters" aria-expanded="{% if mostrar_filtros %}true{% else %}false{% endif %}">Filtrar</button></div>
+    </div>
+  <div class="collapse-panel" id="statistics-filters" {% if not mostrar_filtros %}hidden{% endif %}>
     <div class="panel-heading"><p class="panel-kicker">Búsqueda</p><h3>Filtrar estadísticas</h3></div>
     <form class="responsive-form statistics-filter-form" method="get">
-      <div class="form-field"><label for="stats-from">Fecha desde</label><input id="stats-from" name="fecha_desde" type="date"></div>
-      <div class="form-field"><label for="stats-to">Fecha hasta</label><input id="stats-to" name="fecha_hasta" type="date"></div>
-      <div class="form-field"><label for="stats-assignee">Asignado a</label><input id="stats-assignee" name="asignado" type="search" placeholder="Nombre"></div>
-      <div class="form-field"><label for="stats-type">Tipo de prueba</label><select id="stats-type" name="tipo"><option value="">Todos</option><option>Máquinas</option><option>Aplicativos</option></select></div>
-      <div class="form-field"><label for="stats-status">Estado</label><select id="stats-status" name="estado"><option value="">Todos</option><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></div>
-      <div class="form-actions"><button class="form-button form-button-ghost" type="reset">Limpiar</button><button class="form-button" type="submit">Aplicar filtros</button></div>
+      <input type="hidden" name="categoria" value="{{ categoria }}">
+      {% for field in formulario_filtro %}
+      <div class="form-field">{{ field.label_tag }}{{ field }}{% for error in field.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</div>
+      {% endfor %}
+      {% for error in formulario_filtro.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+      <div class="form-actions"><a class="form-button form-button-ghost form-link" href="{% url 'pruebas:EstadisticasPruebas' %}?categoria={{ categoria }}">Limpiar</a><button class="form-button" type="submit">Aplicar filtros</button></div>
     </form>
   </div>
   <div class="statistics-summary">
-    <article><span>Pruebas totales</span><strong>148</strong><small>+12 este mes</small></article><article><span>Completadas</span><strong>112</strong><small>76% del total</small></article><article><span>En proceso</span><strong>24</strong><small>16% del total</small></article><article><span>Pendientes</span><strong>12</strong><small>8% del total</small></article>
+    <article><span>Pruebas totales</span><strong>{{ total }}</strong><small>Según los filtros seleccionados</small></article><article><span>Finalizadas</span><strong>{{ finalizadas }}</strong><small>{{ porcentaje_finalizadas }}% del total</small></article><article><span>En proceso</span><strong>{{ en_curso }}</strong><small>Con fecha de inicio</small></article><article><span>Pendientes</span><strong>{{ pendientes }}</strong><small>Sin fecha de inicio</small></article>
   </div>
-  <div class="charts-grid">
-    <article class="chart-card">
-      <div class="chart-heading"><div><p>Productividad</p><h3>Pruebas por mes</h3></div><span>Últimos 6 meses</span></div>
-      <div class="vertical-chart" aria-label="Barras: enero 14, febrero 20, marzo 18, abril 27, mayo 24 y junio 32">
-        <div class="chart-y-axis"><span>40</span><span>30</span><span>20</span><span>10</span><span>0</span></div>
-        <div class="vertical-bars"><div class="bar-column"><div class="bar-value" style="--value:35%"><b>14</b></div><span>Ene</span></div><div class="bar-column"><div class="bar-value" style="--value:50%"><b>20</b></div><span>Feb</span></div><div class="bar-column"><div class="bar-value" style="--value:45%"><b>18</b></div><span>Mar</span></div><div class="bar-column"><div class="bar-value" style="--value:68%"><b>27</b></div><span>Abr</span></div><div class="bar-column"><div class="bar-value" style="--value:60%"><b>24</b></div><span>May</span></div><div class="bar-column"><div class="bar-value is-highlighted" style="--value:80%"><b>32</b></div><span>Jun</span></div></div>
+  <div class="charts-grid machine-charts-grid">
+    <article class="chart-card chart-month">
+      <div class="chart-heading"><div><p>Productividad</p><h3>Pruebas por mes</h3></div><span>Periodo seleccionado</span></div>
+      {% if meses %}<div class="vertical-chart stats-month-chart" style="--month-count:{{ meses|length }}" aria-label="Pruebas agrupadas por mes">
+        <div class="vertical-bars">{% for mes in meses %}<div class="bar-column"><div class="bar-value {% if forloop.last %}is-highlighted{% endif %}" style="--value:{{ mes.porcentaje }}%"><b>{{ mes.total }}</b></div><span>{{ mes.etiqueta }}</span></div>{% endfor %}</div>
+      </div>{% else %}<div class="chart-empty">No hay pruebas con fecha de puesta a punto.</div>{% endif %}
+    </article>
+    <article class="chart-card chart-state">
+      <div class="chart-heading"><div><p>Distribución</p><h3>Pruebas por estado</h3></div><span>{{ total }} pruebas</span></div>
+      {% if estados %}<div class="donut-layout"><div class="donut-chart" style="background:conic-gradient({{ gradiente_estados }})" role="img" aria-label="Distribución de pruebas por estado"><div><strong>{{ total }}</strong><span>pruebas</span></div></div><ul class="chart-legend">{% for estado in estados %}<li><i style="background:{{ estado.color }}"></i><span>{{ estado.nombre }}</span><strong>{{ estado.total }} · {{ estado.porcentaje }}%</strong></li>{% endfor %}</ul></div>{% else %}<div class="chart-empty">No hay estados para mostrar.</div>{% endif %}
+    </article>
+    <article class="chart-card chart-game-type">
+      {% if categoria == "generales" %}
+      <div class="chart-heading"><div><p>Distribución</p><h3>Pruebas por categoría</h3></div><span>Periodo seleccionado</span></div>
+      <div class="horizontal-chart">{% for dato in pruebas_por_categoria %}<div class="horizontal-row"><div><span>{{ dato.nombre }}</span><strong>{{ dato.total }}</strong></div><div class="horizontal-track"><i style="--value:{{ dato.porcentaje }}%"></i></div></div>{% endfor %}</div>
+      {% elif categoria == "maquinas" %}
+      <div class="chart-heading"><div><p>Juegos</p><h3>Pruebas por tipo de juego</h3></div><span>Periodo seleccionado</span></div>
+      {% if tipos_juego_estadisticas %}<div class="horizontal-chart">{% for dato in tipos_juego_estadisticas %}<div class="horizontal-row"><div><span>{{ dato.nombre }}</span><strong>{{ dato.total }}</strong></div><div class="horizontal-track"><i style="--value:{{ dato.porcentaje }}%"></i></div></div>{% endfor %}</div>{% else %}<div class="chart-empty">No hay pruebas para mostrar.</div>{% endif %}
+      {% else %}
+      <div class="chart-heading"><div><p>{{ categoria_nombre }}</p><h3>Resultados de casos</h3></div><span>Datos acumulados</span></div>
+      <div class="horizontal-chart">{% for caso in casos_resultado %}<div class="horizontal-row"><div><span>{{ caso.nombre }}</span><strong>{{ caso.total }}</strong></div><div class="horizontal-track"><i style="--value:{{ caso.porcentaje }}%"></i></div></div>{% endfor %}</div>
+      {% endif %}
+    </article>
+    <article class="chart-card chart-assignee">
+      {% if categoria == "generales" %}
+      <div class="chart-heading"><div><p>Equipo</p><h3>Pruebas por responsable</h3></div><span>Miembros del equipo QA</span></div>
+      {% if responsables %}<div class="horizontal-chart">{% for responsable in responsables %}<div class="horizontal-row"><div><span>{{ responsable.nombre }}</span><strong>{{ responsable.total }}</strong></div><div class="horizontal-track"><i style="--value:{{ responsable.porcentaje }}%"></i></div></div>{% endfor %}</div>{% else %}<div class="chart-empty">No hay responsables para mostrar.</div>{% endif %}
+      {% else %}
+      <div class="chart-heading"><div><p>Resultados</p><h3>Pruebas por resultado</h3></div><span>Periodo seleccionado</span></div>
+      {% if resultados_estadisticas %}<div class="horizontal-chart">{% for dato in resultados_estadisticas %}<div class="horizontal-row"><div><span>{{ dato.nombre }}</span><strong>{{ dato.total }}</strong></div><div class="horizontal-track"><i style="--value:{{ dato.porcentaje }}%"></i></div></div>{% endfor %}</div>{% else %}<div class="chart-empty">No hay pruebas para mostrar.</div>{% endif %}
+      {% endif %}
+    </article>
+    {% if categoria == "maquinas" %}
+    <article class="chart-card chart-provider">
+      <div class="chart-heading"><div><p>Proveedores</p><h3>Pruebas por proveedor</h3></div><span>Periodo seleccionado</span></div>
+      {% if proveedores_estadisticas %}<div class="vertical-chart stats-month-chart stats-provider-chart" style="--month-count:{{ proveedores_estadisticas|length }}" role="img" aria-label="Pruebas agrupadas por proveedor">
+        <div class="vertical-bars">{% for dato in proveedores_estadisticas %}<div class="bar-column"><div class="bar-value {% if forloop.first %}is-highlighted{% endif %}" style="--value:{{ dato.porcentaje }}%"><b>{{ dato.total }}</b></div><span>{{ dato.nombre }}</span></div>{% endfor %}</div>
+      </div>{% else %}<div class="chart-empty">No hay pruebas para mostrar.</div>{% endif %}
+    </article>
+    <article class="chart-card chart-protocol">
+      <div class="chart-heading"><div><p>Comunicación</p><h3>Pruebas por protocolo</h3></div><span>Periodo seleccionado</span></div>
+      {% if protocolos_estadisticas %}<div class="donut-layout"><div class="donut-chart" style="background:conic-gradient({{ gradiente_protocolos }})" role="img" aria-label="Distribución de pruebas por protocolo de comunicación"><div><strong>{{ total_protocolos }}</strong><span>pruebas</span></div></div><ul class="chart-legend">{% for dato in protocolos_estadisticas %}<li><i style="background:{{ dato.color }}"></i><span>{{ dato.nombre }}</span><strong>{{ dato.total }} &middot; {{ dato.porcentaje }}%</strong></li>{% endfor %}</ul></div>{% else %}<div class="chart-empty">No hay pruebas para mostrar.</div>{% endif %}
+    </article>
+    {% elif categoria == "aplicativos" %}
+    <article class="chart-card chart-provider">
+      <div class="chart-heading"><div><p>Proyectos</p><h3>Pruebas por proyecto</h3></div><span>Periodo seleccionado</span></div>
+      {% if proyectos_estadisticas %}<div class="vertical-chart stats-month-chart stats-provider-chart" style="--month-count:{{ proyectos_estadisticas|length }}" role="img" aria-label="Pruebas agrupadas por proyecto">
+        <div class="vertical-bars">{% for dato in proyectos_estadisticas %}<div class="bar-column"><div class="bar-value {% if forloop.first %}is-highlighted{% endif %}" style="--value:{{ dato.porcentaje }}%"><b>{{ dato.total }}</b></div><span>{{ dato.nombre }}</span></div>{% endfor %}</div>
+      </div>{% else %}<div class="chart-empty">No hay pruebas para mostrar.</div>{% endif %}
+    </article>
+    <article class="chart-card chart-protocol">
+      <div class="chart-heading"><div><p>Aplicativos</p><h3>Pruebas por tipo de aplicativo</h3></div><span>Periodo seleccionado</span></div>
+      {% if tipos_aplicativo_estadisticas %}<div class="donut-layout"><div class="donut-chart" style="background:conic-gradient({{ gradiente_tipos_aplicativo }})" role="img" aria-label="Distribución de pruebas por tipo de aplicativo"><div><strong>{{ total_tipos_aplicativo }}</strong><span>pruebas</span></div></div><ul class="chart-legend">{% for dato in tipos_aplicativo_estadisticas %}<li><i style="background:{{ dato.color }}"></i><span>{{ dato.nombre }}</span><strong>{{ dato.total }} &middot; {{ dato.porcentaje }}%</strong></li>{% endfor %}</ul></div>{% else %}<div class="chart-empty">No hay pruebas para mostrar.</div>{% endif %}
+    </article>
+    {% endif %}
+    {% if categoria == "generales" %}
+    <article class="chart-card chart-provider">
+      <div class="chart-heading"><div><p>Casos</p><h3>Casos resueltos</h3></div><span>Máquinas y aplicativos</span></div>
+      <div class="vertical-chart stats-month-chart stats-provider-chart" style="--month-count:{{ casos_resultado|length }}" role="img" aria-label="Casos resueltos por resultado">
+        <div class="vertical-bars">{% for caso in casos_resultado %}<div class="bar-column"><div class="bar-value {% if forloop.first %}is-highlighted{% endif %}" style="--value:{{ caso.porcentaje }}%"><b>{{ caso.total }}</b></div><span>{{ caso.nombre }}</span></div>{% endfor %}</div>
       </div>
     </article>
-    <article class="chart-card">
-      <div class="chart-heading"><div><p>Distribución</p><h3>Pruebas por estado</h3></div><span>148 pruebas</span></div>
-      <div class="donut-layout"><div class="donut-chart" role="img" aria-label="Completadas 76%, en proceso 16%, pendientes 8%"><div><strong>76%</strong><span>completadas</span></div></div><ul class="chart-legend"><li><i class="legend-completed"></i><span>Completadas</span><strong>112</strong></li><li><i class="legend-progress"></i><span>En proceso</span><strong>24</strong></li><li><i class="legend-pending"></i><span>Pendientes</span><strong>12</strong></li></ul></div>
+    <article class="chart-card chart-protocol">
+      <div class="chart-heading"><div><p>Resultados</p><h3>Pruebas por resultado</h3></div><span>Periodo seleccionado</span></div>
+      {% if resultados_estadisticas %}<div class="donut-layout"><div class="donut-chart" style="background:conic-gradient({{ gradiente_resultados }})" role="img" aria-label="Distribución de pruebas por resultado"><div><strong>{{ total }}</strong><span>pruebas</span></div></div><ul class="chart-legend">{% for dato in resultados_estadisticas %}<li><i style="background:{{ dato.color }}"></i><span>{{ dato.nombre }}</span><strong>{{ dato.total }} &middot; {{ dato.porcentaje_total }}%</strong></li>{% endfor %}</ul></div>{% else %}<div class="chart-empty">No hay pruebas para mostrar.</div>{% endif %}
     </article>
-    <article class="chart-card">
-      <div class="chart-heading"><div><p>Tendencia</p><h3>Porcentaje de éxito</h3></div><span>Promedio 86%</span></div>
-      <div class="line-chart" role="img" aria-label="Tendencia de éxito ascendente de 72 a 94 por ciento"><div class="line-labels"><span>100%</span><span>75%</span><span>50%</span><span>25%</span></div><svg viewBox="0 0 600 230" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="lineArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#59e0ba" stop-opacity=".35"/><stop offset="1" stop-color="#59e0ba" stop-opacity="0"/></linearGradient></defs><path class="line-area" d="M15 120 L125 105 L235 130 L345 82 L455 68 L585 38 L585 220 L15 220 Z"/><polyline points="15,120 125,105 235,130 345,82 455,68 585,38"/><g><circle cx="15" cy="120" r="6"/><circle cx="125" cy="105" r="6"/><circle cx="235" cy="130" r="6"/><circle cx="345" cy="82" r="6"/><circle cx="455" cy="68" r="6"/><circle cx="585" cy="38" r="6"/></g></svg><div class="line-months"><span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span></div></div>
-    </article>
-    <article class="chart-card">
-      <div class="chart-heading"><div><p>Equipo</p><h3>Pruebas por responsable</h3></div><span>Total asignado</span></div>
-      <div class="horizontal-chart"><div class="horizontal-row"><div><span>Diana Cervantes</span><strong>46</strong></div><div class="horizontal-track"><i style="--value:92%"></i></div></div><div class="horizontal-row"><div><span>Lizbeth González</span><strong>38</strong></div><div class="horizontal-track"><i style="--value:76%"></i></div></div><div class="horizontal-row"><div><span>Marco Fernández</span><strong>34</strong></div><div class="horizontal-track"><i style="--value:68%"></i></div></div><div class="horizontal-row"><div><span>Sin asignar</span><strong>18</strong></div><div class="horizontal-track"><i style="--value:36%"></i></div></div></div>
+    {% endif %}
+    <article class="chart-card test-progress-card">
+      <div class="chart-heading"><div><p>Seguimiento</p><h3>Detalle de las pruebas</h3></div><span>Avance individual</span></div>
+      <div class="table-scroll" role="region" aria-label="Detalle del avance de las pruebas" tabindex="0">
+        <table class="tests-table progress-table">
+          <thead><tr><th>Código</th><th>Nombre de la prueba</th><th>Encargado</th><th>Estado</th><th>Resultado</th><th>Casos de prueba</th><th>Aprobados</th><th>No aprobados</th><th>Aprobados menos</th><th>Avance</th><th>Aprobado (%)</th><th>Acciones</th></tr></thead>
+          <tbody>
+            {% for prueba in detalle_pruebas %}
+            <tr><td><strong>{{ prueba.codigo }}</strong></td><td class="test-name-cell">{{ prueba.nombre|default:"—" }}</td><td>{{ prueba.encargado }}</td><td><span class="status-badge">{{ prueba.estado }}</span></td><td>{{ prueba.resultado }}</td><td>{{ prueba.casos }}</td><td>{{ prueba.aprobados }}</td><td>{{ prueba.no_aprobados }}</td><td>{{ prueba.aprobados_menos }}</td><td><div class="progress-value"><div class="horizontal-track"><i style="--value:{{ prueba.avance_css|stringformat:'g' }}%"></i></div><strong>{{ prueba.avance }}%</strong></div></td><td>{{ prueba.porcentaje_aprobado|floatformat:2 }}%</td><td><a class="detail-icon-link" href="{% if querystring_filtros %}?{{ querystring_filtros }}&amp;{% else %}?{% endif %}detalle={{ prueba.id }}" aria-label="Ver detalle" title="Ver detalle"><img src="{% static 'iconos/ver-detalles.png' %}" alt=""></a></td></tr>
+            {% empty %}
+            <tr><td class="empty-table-message" colspan="12">No hay pruebas dentro del periodo seleccionado.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </article>
   </div>
+  </div>
 </section>
+{% if detalle_seleccionado %}
+<div class="edit-modal-backdrop" role="presentation">
+  <section class="edit-modal test-detail-modal" role="dialog" aria-modal="true" aria-labelledby="test-detail-title">
+    <div class="edit-modal-heading">
+      <div><p class="panel-kicker">{% if detalle_aplicativo %}Prueba de aplicativo{% elif detalle_maquina %}Prueba de máquina{% else %}Prueba{% endif %}</p><h3 id="test-detail-title">Detalle completo</h3></div>
+      <a class="edit-modal-close" href="{% url 'pruebas:EstadisticasPruebas' %}{% if querystring_filtros %}?{{ querystring_filtros }}{% endif %}" aria-label="Cerrar">×</a>
+    </div>
+    <div class="test-detail-grid">
+      {% if detalle_aplicativo %}
+      <div><span>Código</span><strong>{{ detalle_aplicativo.codigoPrueba }}</strong></div><div><span>Nombre de prueba</span><strong>{{ detalle_aplicativo.nombrePrueba|default:"—" }}</strong></div><div><span>Versión</span><strong>{{ detalle_aplicativo.versionAplicacion|default:"—" }}</strong></div><div><span>Tipo de aplicativo</span><strong>{{ detalle_aplicativo.idTipoAplicativo.nombreTipoAplicativo }}</strong></div><div><span>Proyecto</span><strong>{{ detalle_aplicativo.idProyecto.nombreProyecto }}</strong></div>
+      {% elif detalle_maquina %}
+      <div><span>Nombre de la prueba</span><strong>{{ detalle_maquina.nombreJuego|default:"—" }}</strong></div>
+      <div><span>Código</span><strong>{{ detalle_maquina.codigoPrueba }}</strong></div><div><span>Máquina</span><strong>{{ detalle_maquina.idMaquina.nombreGabinete }}</strong></div><div><span>Número de serie</span><strong>{{ detalle_maquina.idMaquina.numeroSerie }}</strong></div><div><span>Proveedor</span><strong>{{ detalle_maquina.idMaquina.idProveedor.nombreProveedor }}</strong></div><div><span>Familia</span><strong>{{ detalle_maquina.idFamilia.nombreFamilia }}</strong></div><div><span>Tipo de juego</span><strong>{{ detalle_maquina.idTipoJuego.nombre }}</strong></div><div><span>Versión sistema de caja</span><strong>{{ detalle_maquina.versionSistemaCaja }}</strong></div><div><span>Versión Nexus</span><strong>{{ detalle_maquina.versionNexus }}</strong></div>
+      {% endif %}
+      <div><span>Encargado</span><strong>{{ detalle_seleccionado.idEncargado.get_full_name|default:detalle_seleccionado.idEncargado.username }}</strong></div><div><span>Tipo de prueba</span><strong>{{ detalle_seleccionado.idTipoPrueba.nombreTipoPrueba }}</strong></div><div><span>Estado</span><strong>{{ detalle_seleccionado.idEstado.nombreEstado }}</strong></div><div><span>Resultado</span><strong>{{ detalle_seleccionado.idResultado.nombreResultado|default:"Pendiente" }}</strong></div><div><span>Fecha de puesta a punto</span><strong>{{ detalle_seleccionado.fechaPuestaPunto|date:"Y-m-d"|default:"—" }}</strong></div><div><span>Fecha de inicio</span><strong>{{ detalle_seleccionado.fechaInicio|date:"Y-m-d"|default:"—" }}</strong></div><div><span>Fecha de finalización</span><strong>{{ detalle_seleccionado.fechaFin|date:"Y-m-d"|default:"—" }}</strong></div><div><span>Casos de prueba</span><strong>{{ detalle_seleccionado.numCasosPrueba }}</strong></div><div><span>Aprobados</span><strong>{{ detalle_seleccionado.numAprobado|default:0 }}</strong></div><div><span>No aprobados</span><strong>{{ detalle_seleccionado.numNoAprobado|default:0 }}</strong></div><div><span>Aprobados menos</span><strong>{{ detalle_seleccionado.numAprobadoMenos|default:0 }}</strong></div><div><span>Avance</span><strong>{{ detalle_seleccionado.porcentajeAvance }}%</strong></div><div><span>Porcentaje aprobado</span><strong>{{ detalle_seleccionado.porcentajeAprobado|floatformat:2 }}%</strong></div><div><span>Documento</span><strong>{% if detalle_seleccionado.documentoPruebas %}<a href="{{ detalle_seleccionado.documentoPruebas }}" target="_blank" rel="noopener">Abrir documento</a>{% else %}—{% endif %}</strong></div><div class="test-detail-wide"><span>Observaciones</span><strong>{{ detalle_seleccionado.observaciones|default:"—" }}</strong></div>
+    </div>
+  </section>
+</div>
+{% endif %}
 <script>document.addEventListener("DOMContentLoaded",function(){const b=document.querySelector("[data-stats-filter-button]"),p=document.getElementById("statistics-filters");b.addEventListener("click",function(){const o=p.hidden;p.hidden=!o;b.setAttribute("aria-expanded",String(o));b.classList.toggle("is-active",o)})});</script>
 {% endblock %}
