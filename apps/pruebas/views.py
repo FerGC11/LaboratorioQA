@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.db.models import Count, Sum
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import Coalesce, TruncMonth
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from decimal import Decimal
@@ -60,7 +60,9 @@ def guardarPruebaMaquina(request):
         ).quantize(Decimal("0.01"))
         registro_edicion.nombreJuego = formulario_edicion.cleaned_data["nombreJuego"] or None
         with transaction.atomic():
-            registro_edicion.save(update_fields=["nombreJuego"])
+            registro_edicion.idProveedor = formulario_edicion.cleaned_data["idProveedor"]
+            registro_edicion.idFamilia = formulario_edicion.cleaned_data["idFamilia"]
+            registro_edicion.save(update_fields=["nombreJuego", "idProveedor", "idFamilia"])
             prueba.save(update_fields=["idEstado", "idResultado", "fechaInicio", "fechaFin", "fechaPuestaPunto", "documentoPruebas", "observaciones", "numAprobado", "numNoAprobado", "numAprobadoMenos", "numCasosPrueba", "porcentajeAvance"])
         return redirect("pruebas:PruebasMaquinas")
 
@@ -91,6 +93,7 @@ def guardarPruebaMaquina(request):
                 idPrueba=prueba,
                 idFamilia=datos["idFamilia"],
                 idMaquina=datos["idMaquina"],
+                idProveedor=datos["idProveedor"] or datos["idMaquina"].idProveedor,
                 codigoPrueba=datos["codigoPrueba"],
                 idTipoJuego=datos["idTipoJuego"],
                 idProtocolo=datos["idProtocolo"],
@@ -353,7 +356,9 @@ def inicioEstadisticasPruebas(request):
     gradiente_protocolos = "#26364f 0 100%"
     total_protocolos = 0
     if categoria == "maquinas":
-        maquinas_filtradas = registros.filter(idPrueba_id__in=pruebas.values("pk"))
+        maquinas_filtradas = registros.filter(idPrueba_id__in=pruebas.values("pk")).annotate(
+            proveedor_nombre=Coalesce("idProveedor__nombreProveedor", "idMaquina__idProveedor__nombreProveedor")
+        )
 
         def agrupar_maquinas(campo, sin_nombre):
             grupos = maquinas_filtradas.values(campo).annotate(
@@ -362,7 +367,7 @@ def inicioEstadisticasPruebas(request):
             return [{"nombre": grupo[campo] or sin_nombre, "total": grupo["total"]} for grupo in grupos]
 
         tipos_juego_estadisticas = agrupar_maquinas("idTipoJuego__nombre", "Sin tipo de juego")
-        proveedores_estadisticas = agrupar_maquinas("idMaquina__idProveedor__nombreProveedor", "Sin proveedor")
+        proveedores_estadisticas = agrupar_maquinas("proveedor_nombre", "Sin proveedor")
         for grupos in (tipos_juego_estadisticas, proveedores_estadisticas):
             maximo = max((grupo["total"] for grupo in grupos), default=0) or 1
             for grupo in grupos:
@@ -423,6 +428,8 @@ def inicioEstadisticasPruebas(request):
         {"nombre": "No aprobados", "total": casos["no_aprobados"] or 0},
         {"nombre": "Aprobados menos", "total": casos["aprobados_menos"] or 0},
     ]
+    if categoria == "maquinas":
+        casos_resultado = [dato for dato in casos_resultado if dato["nombre"] != "Aprobados menos"]
     max_casos = max((dato["total"] for dato in casos_resultado), default=1) or 1
     for dato in casos_resultado:
         dato["porcentaje"] = round(dato["total"] * 100 / max_casos)
@@ -465,7 +472,7 @@ def inicioEstadisticasPruebas(request):
         responsables.append({"nombre": nombre, "total": dato["total"], "porcentaje": round(dato["total"] * 100 / max_responsable)})
 
     detalle_pruebas = []
-    pruebas_detalle = pruebas.prefetch_related("pruebas_aplicativos", "pruebas_maquinas").order_by(
+    pruebas_detalle = pruebas.prefetch_related("pruebas_aplicativos", "pruebas_maquinas__idProveedor", "pruebas_maquinas__idMaquina__idProveedor").order_by(
         "-fechaPuestaPunto", "-idPrueba"
     )
     for prueba in pruebas_detalle:
@@ -475,6 +482,8 @@ def inicioEstadisticasPruebas(request):
             "id": prueba.pk,
             "codigo": aplicativo.codigoPrueba if aplicativo else (maquina.codigoPrueba if maquina else f"Prueba {prueba.pk}"),
             "nombre": aplicativo.nombrePrueba if aplicativo else (maquina.nombreJuego if maquina else None),
+            "proveedor": str(maquina.proveedor) if maquina else None,
+            "es_maquina": maquina is not None,
             "encargado": prueba.idEncargado.get_full_name() or prueba.idEncargado.username,
             "estado": prueba.idEstado.nombreEstado,
             "resultado": prueba.idResultado.nombreResultado if prueba.idResultado else "Pendiente",

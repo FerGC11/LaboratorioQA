@@ -2,7 +2,7 @@
 
 from apps.maquinas.models import Maquinas
 from apps.usuarios.models import Usuario
-from .models import (Estados, FamiliasJuegos, Protocolo, Proyectos, PruebasAplicativos,
+from .models import (Estados, FamiliasJuegos, Protocolo, Proveedores, Proyectos, PruebasAplicativos,
     PruebasMaquinas, Resultados, TipoJuego, TiposAplicativos, TiposPruebas)
 
 
@@ -21,8 +21,9 @@ class FormularioBasePrueba(forms.Form):
 
 class FormularioPruebaMaquina(FormularioBasePrueba):
     codigoPrueba = forms.CharField(label="Código de prueba", max_length=100)
-    nombreJuego = forms.CharField(label="Nombre de la prueba", max_length=150, required=False)
-    idFamilia = forms.ModelChoiceField(label="Familia de juego", queryset=FamiliasJuegos.objects.none())
+    nombreJuego = forms.CharField(label="Juego", max_length=150, required=False)
+    idProveedor = forms.ModelChoiceField(label="Proveedor", required=False, queryset=Proveedores.objects.none())
+    idFamilia = forms.ModelChoiceField(label="Familia de juego", widget=forms.Select(attrs={"data-family-search": ""}), queryset=FamiliasJuegos.objects.none())
     idMaquina = forms.ModelChoiceField(label="Gabinete", queryset=Maquinas.objects.none())
     idTipoJuego = forms.ModelChoiceField(label="Tipo de juego", queryset=TipoJuego.objects.none())
     idProtocolo = forms.ModelChoiceField(label="Protocolo", queryset=Protocolo.objects.none())
@@ -48,12 +49,18 @@ class FormularioPruebaMaquina(FormularioBasePrueba):
         super().__init__(*args, **kwargs)
         self.fields["idResultado"].queryset = Resultados.objects.filter(activo=True).order_by("nombreResultado")
         self.fields["idResultado"].empty_label = "Pendiente"
+        self.fields["idProveedor"].queryset = Proveedores.objects.filter(activo=True).order_by("nombreProveedor")
+        self.fields["numAprobadoMenos"].widget = forms.HiddenInput()
+        self.fields["numAprobadoMenos"].disabled = True
         self.fields["idFamilia"].queryset = FamiliasJuegos.objects.filter(activo=True).order_by("nombreFamilia")
         self.fields["idMaquina"].queryset = Maquinas.objects.filter(activo=True).order_by("nombreGabinete")
         self.fields["idProtocolo"].queryset = Protocolo.objects.filter(activo=True).order_by("nombreProtocolo")
         self.fields["idTipoJuego"].queryset = TipoJuego.objects.filter(activo=True).order_by("nombre")
         for name in ("idFamilia", "idMaquina", "idTipoJuego", "idProtocolo"):
             self.fields[name].empty_label = "Seleccionar"
+        for field in self.fields.values():
+            if isinstance(field, forms.ModelChoiceField):
+                field.widget.attrs["data-catalog-search"] = field.label
 
     def clean_codigoPrueba(self):
         codigo = self.cleaned_data["codigoPrueba"].strip()
@@ -170,13 +177,27 @@ class FormularioEditarPruebaAplicativo(forms.Form):
 
 
 class FormularioEditarPruebaMaquina(FormularioEditarPruebaAplicativo):
-    nombreJuego = forms.CharField(label="Nombre de la prueba", max_length=150, required=False)
+    nombreJuego = forms.CharField(label="Juego", max_length=150, required=False)
+    idProveedor = forms.ModelChoiceField(label="Proveedor", required=False, queryset=Proveedores.objects.none())
+    idFamilia = forms.ModelChoiceField(label="Familia de juego", required=False, queryset=FamiliasJuegos.objects.none(), widget=forms.Select(attrs={"data-family-search": ""}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.order_fields(["nombreJuego"] + [name for name in self.fields if name != "nombreJuego"])
+        self.fields["idProveedor"].queryset = Proveedores.objects.filter(activo=True).order_by("nombreProveedor")
+        self.fields["idFamilia"].queryset = FamiliasJuegos.objects.filter(activo=True).order_by("nombreFamilia")
+        self.fields["numAprobadoMenos"].widget = forms.HiddenInput()
+        self.fields["numAprobadoMenos"].disabled = True
+        self.initial["numAprobadoMenos"] = self.prueba.numAprobadoMenos or 0 if self.prueba else 0
+        self.order_fields(["nombreJuego", "idProveedor", "idFamilia"] + [name for name in self.fields if name not in ("nombreJuego", "idProveedor", "idFamilia")])
         if self.registro and not self.is_bound:
-            self.initial["nombreJuego"] = self.registro.nombreJuego
+            self.initial.update(nombreJuego=self.registro.nombreJuego, idProveedor=self.registro.proveedor.pk, idFamilia=self.registro.idFamilia_id)
+
+    def clean(self):
+        data = super().clean()
+        if self.registro:
+            data["idProveedor"] = data.get("idProveedor") or self.registro.proveedor
+            data["idFamilia"] = data.get("idFamilia") or self.registro.idFamilia
+        return data
 
 
 class FiltroBasePrueba(forms.Form):
@@ -206,8 +227,8 @@ class FiltroBasePrueba(forms.Form):
 
 
 class FiltroPruebaMaquina(FiltroBasePrueba):
-    nombreJuego = forms.CharField(label="Nombre de la prueba", max_length=150, required=False)
-    familia = forms.ModelChoiceField(label="Familia de juego", required=False, queryset=FamiliasJuegos.objects.none())
+    nombreJuego = forms.CharField(label="Juego", max_length=150, required=False)
+    familia = forms.ModelChoiceField(label="Familia de juego", required=False, widget=forms.Select(attrs={"data-family-search": ""}), queryset=FamiliasJuegos.objects.none())
     tipoJuego = forms.ModelChoiceField(label="Tipo de juego", required=False, queryset=TipoJuego.objects.none())
     maquina = forms.ModelChoiceField(label="Gabinete", required=False, queryset=Maquinas.objects.none())
 
@@ -245,8 +266,8 @@ class FiltroEstadisticas(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields["encargado"].queryset = Usuario.objects.filter(is_active=True, activo=True).order_by("first_name", "last_name", "username")
         self.fields["tipo"].queryset = TiposPruebas.objects.filter(activo=True).order_by("nombreTipoPrueba")
-        self.fields["resultado"].queryset = Resultados.objects.filter(activo=True).order_by("nombreResultado")
-        self.fields["estado"].queryset = Estados.objects.filter(activo=True).order_by("nombreEstado")
+        self.fields["resultado"].queryset = Resultados.objects.filter(activo=True).exclude(nombreResultado__iexact="Aprobado-").exclude(nombreResultado__iexact="Aprobado menos").exclude(nombreResultado__iexact="Aprobados menos").order_by("nombreResultado")
+        self.fields["estado"].queryset = Estados.objects.filter(activo=True).exclude(nombreEstado__iexact="Entorno en preparación").exclude(nombreEstado__iexact="Entorno en preparacion").order_by("nombreEstado")
         for field in self.fields.values():
             if isinstance(field, forms.ModelChoiceField):
                 field.empty_label = "Todos"
@@ -271,7 +292,7 @@ class FiltroEstadisticasAplicativos(FiltroEstadisticas):
 
 class FiltroEstadisticasMaquinas(FiltroEstadisticas):
     maquina = forms.ModelChoiceField(label="Gabinete", required=False, queryset=Maquinas.objects.none())
-    familia = forms.ModelChoiceField(label="Familia de juego", required=False, queryset=FamiliasJuegos.objects.none())
+    familia = forms.ModelChoiceField(label="Familia de juego", required=False, widget=forms.Select(attrs={"data-family-search": ""}), queryset=FamiliasJuegos.objects.none())
     tipoJuego = forms.ModelChoiceField(label="Tipo de juego", required=False, queryset=TipoJuego.objects.none())
     protocolo = forms.ModelChoiceField(label="Protocolo", required=False, queryset=Protocolo.objects.none())
 

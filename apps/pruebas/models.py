@@ -140,12 +140,17 @@ class PruebasMaquinas(models.Model):
     idPrueba = models.ForeignKey(Pruebas, on_delete=models.CASCADE, related_name="pruebas_maquinas")
     idFamilia = models.ForeignKey(FamiliasJuegos, on_delete=models.PROTECT, related_name="pruebas_maquinas")
     idMaquina = models.ForeignKey("maquinas.Maquinas", on_delete=models.PROTECT, related_name="pruebas_maquinas")
+    idProveedor = models.ForeignKey(Proveedores, on_delete=models.PROTECT, related_name="pruebas_maquinas", null=True, blank=True)
     codigoPrueba = models.CharField(max_length=100, unique=True)
     idTipoJuego = models.ForeignKey(TipoJuego, on_delete=models.PROTECT, related_name="pruebas_maquinas")
     idProtocolo = models.ForeignKey(Protocolo, on_delete=models.PROTECT, related_name="pruebas_maquinas", null=True, blank=True)
     versionSistemaCaja = models.CharField(max_length=100)
     versionNexus = models.CharField(max_length=100)
     nombreJuego = models.CharField(max_length=150, null=True, blank=True)
+
+    @property
+    def proveedor(self):
+        return self.idProveedor or self.idMaquina.idProveedor
 
     def __str__(self):
         return self.codigoPrueba

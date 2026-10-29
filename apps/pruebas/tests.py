@@ -266,3 +266,42 @@ class EstadisticasCategoriasTests(TestCase):
         self.assertContains(response, "70.00%")
         detalle = next(p for p in response.context["detalle_pruebas"] if p["id"] == self.prueba_maquina.pk)
         self.assertEqual(float(detalle["porcentaje_aprobado"]), 70)
+
+    def test_editar_proveedor_familia_sin_modificar_gabinete(self):
+        registro = PruebasMaquinas.objects.get(idPrueba=self.prueba_maquina)
+        proveedor = Proveedores.objects.create(nombreProveedor="Proveedor B")
+        familia = FamiliasJuegos.objects.create(nombreFamilia="Familia B")
+        self.prueba_maquina.numAprobadoMenos = 1
+        self.prueba_maquina.save()
+        response = self.client.post(reverse("pruebas:PruebasMaquinas"), {
+            "accion": "editar", "idPruebaMaquina": registro.pk,
+            "nombreJuego": "Juego editado", "idProveedor": proveedor.pk,
+            "fechaPuestaPunto": timezone.localdate().isoformat(),
+            "idFamilia": familia.pk, "idEstado": self.prueba_maquina.idEstado_id,
+            "numAprobado": 7, "numNoAprobado": 0, "numCasosPrueba": 10,
+            "numAprobadoMenos": 999,
+        })
+        self.assertEqual(response.status_code, 302)
+        registro.refresh_from_db()
+        self.prueba_maquina.refresh_from_db()
+        self.assertEqual(registro.idProveedor, proveedor)
+        self.assertEqual(registro.idFamilia, familia)
+        self.assertNotEqual(registro.idMaquina.idProveedor, proveedor)
+        self.assertEqual(self.prueba_maquina.numAprobadoMenos, 1)
+        response = self.consultar(categoria="maquinas", detalle=self.prueba_maquina.pk)
+        self.assertContains(response, "Proveedor B")
+        self.assertEqual(response.context["proveedores_estadisticas"][0]["nombre"], "Proveedor B")
+        self.assertNotContains(response, "Aprobados menos")
+
+    def test_formularios_juego_y_busqueda_familia(self):
+        registro = PruebasMaquinas.objects.get(idPrueba=self.prueba_maquina)
+        response = self.client.get(reverse("pruebas:PruebasMaquinas"), {"editar": registro.pk})
+        for nombre in ("formulario_registro", "formulario_edicion", "formulario_filtro"):
+            form = response.context[nombre]
+            self.assertEqual(form.fields["nombreJuego"].label, "Juego")
+        for nombre in ("formulario_registro", "formulario_edicion"):
+            form = response.context[nombre]
+            self.assertIn("idProveedor", form.fields)
+            self.assertIn("data-family-search", form.fields["idFamilia"].widget.attrs)
+            self.assertTrue(form.fields["numAprobadoMenos"].widget.is_hidden)
+        self.assertNotContains(response, "Aprobados menos")

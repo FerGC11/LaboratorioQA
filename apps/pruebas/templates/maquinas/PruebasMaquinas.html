@@ -20,7 +20,7 @@
     <form class="responsive-form database-filter-form" method="get">
       {% for field in formulario_filtro %}
       <div class="form-field">
-        {{ field.label_tag }}{{ field }}
+        {% if field.is_hidden %}{{ field }}{% else %}{{ field.label_tag }}{{ field }}{% endif %}
         {% for error in field.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
       </div>
       {% endfor %}
@@ -37,8 +37,8 @@
     <form class="responsive-form database-entry-form" method="post" enctype="multipart/form-data" novalidate>
       {% csrf_token %}
       {% for field in formulario_registro %}
-      <div class="form-field {% if field.name == 'observaciones' %}form-field-wide{% endif %}">
-        {{ field.label_tag }}{{ field }}
+      <div {% if field.is_hidden %}hidden{% endif %} class="form-field {% if field.name == 'observaciones' %}form-field-wide{% endif %}">
+        {% if field.is_hidden %}{{ field }}{% else %}{{ field.label_tag }}{{ field }}{% endif %}
         {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
         {% for error in field.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
       </div>
@@ -54,7 +54,7 @@
   <div class="table-scroll" role="region" aria-label="Listado de pruebas de máquinas" tabindex="0">
     <table class="tests-table database-table">
       <thead><tr>
-        <th>ID prueba</th><th>Código</th><th>Nombre de la prueba</th><th>Gabinete</th><th>Número de serie</th><th>Familia</th><th>Tipo de juego</th><th>Protocolo</th><th>Versión caja</th><th>Versión Nexus</th><th>Encargado</th><th>Tipo</th><th>Estado</th><th>Resultado</th><th>Puesta a punto</th><th>Inicio</th><th>Fin</th><th>Casos de prueba</th><th>Aprobados</th><th>No aprobados</th><th>Aprobados menos</th><th>Avance (%)</th><th>Aprobado (%)</th><th>Documento</th><th>Observaciones</th><th>Acciones</th>
+        <th>ID prueba</th><th>Código</th><th>Juego</th><th>Gabinete</th><th>Número de serie</th><th>Familia</th><th>Tipo de juego</th><th>Protocolo</th><th>Versión caja</th><th>Versión Nexus</th><th>Encargado</th><th>Tipo</th><th>Estado</th><th>Resultado</th><th>Puesta a punto</th><th>Inicio</th><th>Fin</th><th>Casos de prueba</th><th>Aprobados</th><th>No aprobados</th><th>Avance (%)</th><th>Aprobado (%)</th><th>Documento</th><th>Observaciones</th><th>Acciones</th>
       </tr></thead>
       <tbody>
         {% for registro in pruebas_maquinas %}
@@ -79,14 +79,13 @@
           <td>{{ registro.idPrueba.numCasosPrueba }}</td>
           <td>{{ registro.idPrueba.numAprobado }}</td>
           <td>{{ registro.idPrueba.numNoAprobado }}</td>
-          <td>{{ registro.idPrueba.numAprobadoMenos }}</td>
           <td>{{ registro.idPrueba.porcentajeAvance|floatformat:2 }}%</td><td>{{ registro.idPrueba.porcentajeAprobado|floatformat:2 }}%</td>
           <td>{% if registro.idPrueba.documentoPruebas %}<a class="document-link" href="{{ registro.idPrueba.documentoPruebas }}" target="_blank" rel="noopener" aria-label="Abrir documento" title="Abrir documento"><img src="{% static 'iconos/documento.png' %}" alt=""></a>{% else %}—{% endif %}</td>
           <td class="observations-cell"><div class="observations-text" tabindex="0" role="region" aria-label="Observaciones">{{ registro.idPrueba.observaciones|default:"—" }}</div></td>
           <td><a class="form-button form-link" href="{% url 'pruebas:PruebasMaquinas' %}?editar={{ registro.idPruebaMaquina }}">Editar</a></td>
         </tr>
         {% empty %}
-        <tr><td class="empty-table-message" colspan="26">No hay pruebas que coincidan con los filtros. Agrega una prueba o cambia los criterios de búsqueda.</td></tr>
+        <tr><td class="empty-table-message" colspan="25">No hay pruebas que coincidan con los filtros. Agrega una prueba o cambia los criterios de búsqueda.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -104,8 +103,8 @@
       <input type="hidden" name="accion" value="editar">
       <input type="hidden" name="idPruebaMaquina" value="{{ registro_edicion.idPruebaMaquina }}">
       {% for field in formulario_edicion %}
-      <div class="form-field {% if field.name == 'observaciones' %}form-field-wide{% endif %}">
-        {{ field.label_tag }}{{ field }}
+      <div {% if field.is_hidden %}hidden{% endif %} class="form-field {% if field.name == 'observaciones' %}form-field-wide{% endif %}">
+        {% if field.is_hidden %}{{ field }}{% else %}{{ field.label_tag }}{{ field }}{% endif %}
         {% for error in field.errors %}<span class="form-error">{{ error }}</span>{% endfor %}
       </div>
       {% endfor %}

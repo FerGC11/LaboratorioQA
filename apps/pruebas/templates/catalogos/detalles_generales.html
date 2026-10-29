@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Detalles generales | Laboratorio{% endblock %}
+{% block content %}
+<section class="tests-page catalog-page">
+  <div class="tests-heading">
+    <div class="tests-title"><a class="back-button" href="{% url 'inicio' %}" aria-label="Volver al inicio"><img src="{% static 'iconos/atras.png' %}" alt=""></a><p class="tests-eyebrow">Administraci&oacute;n</p><h2>Detalles generales</h2></div>
+  </div>
+  <p class="catalog-intro">Administra los cat&aacute;logos del laboratorio. Selecciona uno para consultar, agregar o editar su informaci&oacute;n.</p>
+  <div class="catalog-layout">
+    <nav class="catalog-nav" aria-label="Cat&aacute;logos">
+      {% for item in catalogos %}<a href="{% url 'pruebas:Catalogo' item.slug %}" {% if item.slug == catalogo %}class="is-active" aria-current="page"{% endif %}>{{ item.titulo }}</a>{% endfor %}
+    </nav>
+    <div class="catalog-content">
+      <div class="panel-heading"><p class="panel-kicker">Cat&aacute;logo seleccionado</p><h3>{{ titulo_catalogo }}</h3></div>
+      {% if guardado %}<p class="catalog-success" role="status">Registro guardado correctamente.</p>{% endif %}
+      <section class="catalog-editor" aria-labelledby="catalog-editor-title">
+        <h3 id="catalog-editor-title">{% if registro %}Editar registro #{{ registro.pk }}{% else %}Agregar registro{% endif %}</h3>
+        <form class="responsive-form database-entry-form" method="post" action="{% url 'pruebas:Catalogo' catalogo %}" novalidate>
+          {% csrf_token %}
+          {% if registro %}<input type="hidden" name="registro_id" value="{{ registro.pk }}">{% endif %}
+          {% for field in formulario %}<div class="form-field">{{ field.label_tag }}{{ field }}{% for error in field.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</div>{% endfor %}
+          {% for error in formulario.non_field_errors %}<p class="form-error form-field-wide" role="alert">{{ error }}</p>{% endfor %}
+          <div class="form-actions form-field-wide">{% if registro %}<a class="form-button form-button-ghost form-link" href="{% url 'pruebas:Catalogo' catalogo %}">Cancelar</a>{% endif %}<button class="form-button" type="submit">{% if registro %}Guardar cambios{% else %}Agregar registro{% endif %}</button></div>
+        </form>
+      </section>
+      <form class="catalog-search responsive-form" method="get" action="{% url 'pruebas:Catalogo' catalogo %}" role="search">
+        <div class="form-field"><label for="catalog-q">Buscar en {{ titulo_catalogo }}</label><input id="catalog-q" name="q" value="{{ busqueda }}" placeholder="Escribe para buscar"></div>
+        {% if tiene_activo %}<div class="form-field"><label for="catalog-active">Disponibilidad</label><select id="catalog-active" name="activo"><option value="">Todos</option><option value="1" {% if estado_filtro == '1' %}selected{% endif %}>Activos</option><option value="0" {% if estado_filtro == '0' %}selected{% endif %}>Inactivos</option></select></div>{% endif %}
+        <div class="form-actions"><button class="form-button" type="submit">Buscar</button><a class="form-button form-button-ghost form-link" href="{% url 'pruebas:Catalogo' catalogo %}">Limpiar</a></div>
+      </form>
+      <div class="database-results-header"><p><strong>{{ pagina.paginator.count }}</strong> registros encontrados</p></div>
+      <div class="table-scroll" role="region" aria-label="Registros del cat&aacute;logo" tabindex="0"><table class="tests-table database-table">
+        <thead><tr><th>ID</th>{% for encabezado in encabezados %}<th>{{ encabezado }}</th>{% endfor %}<th>Acciones</th></tr></thead>
+        <tbody>{% for fila in filas %}<tr><td>{{ fila.id }}</td>{% for celda in fila.celdas %}<td>{{ celda }}</td>{% endfor %}<td><a class="form-button form-link" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}editar={{ fila.id }}">Editar</a></td></tr>{% empty %}<tr><td class="empty-table-message" colspan="{{ columnas }}">No hay registros que coincidan con la b&uacute;squeda.</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% if pagina.has_other_pages %}<nav class="catalog-pagination" aria-label="Paginaci&oacute;n">{% if pagina.has_previous %}<a class="form-button form-link" href="?{{ querystring }}&amp;pagina={{ pagina.previous_page_number }}">Anterior</a>{% endif %}<span>P&aacute;gina {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>{% if pagina.has_next %}<a class="form-button form-link" href="?{{ querystring }}&amp;pagina={{ pagina.next_page_number }}">Siguiente</a>{% endif %}</nav>{% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
